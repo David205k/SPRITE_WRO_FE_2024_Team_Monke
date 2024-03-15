@@ -10,6 +10,7 @@ class trafficSign:
         self.bgr = bgr
         self.height, self.width = 0, 0
         self.minDist = minDist
+        self.dist = 0
 
         mask = cv2.inRange(hsvImage, lowerLimit, upperLimit) #create an image with only the colour inside
         mask_ = Image.fromarray(mask) #convert to Image object so that we can use the library to get bounding box
@@ -27,7 +28,8 @@ class trafficSign:
 
                 cv2.rectangle(frame, (x1, y1), (x2, y2), self.bgr, 5) #print bounding box onto frame
 
-                print("distance = ", (frame.shape[0]/self.height)*self.minDist) #print distance of object to camera
+                #print("distance = ", (frame.shape[0]/self.height)*self.minDist) #print distance of object to camera
+                self.dist = int((frame.shape[0]/self.height)*self.minDist)
 
 
 capture = cv2.VideoCapture(0) #get video from main camera | 0==> cam 1, 1==> cam2, ...
@@ -50,9 +52,10 @@ while True:
     red.printBbox()
 
 
-    #shape[1] ==> width,   shape[0] ==> height
-    cv2.line(frame, (frame.shape[1]//2, 0), (frame.shape[1]//2, frame.shape[0]), (0, 255, 0), thickness = 3) #centre line
-
+    #shape[1] ==> width = 640,   shape[0] ==> height = 480
+    cv2.line(frame, (frame.shape[1]//2, 0), (frame.shape[1]//2, frame.shape[0]), (0, 255, 255), thickness = 3) #centre line
+    cv2.putText(frame, "Dist: " + str(green.dist), (500, 440), cv2.FONT_HERSHEY_TRIPLEX, 1.0, (0, 255, 0), 1)
+    cv2.putText(frame, "Dist: " + str(red.dist), (20, 440), cv2.FONT_HERSHEY_TRIPLEX, 1.0, (0, 0, 255), 1)
 
     cv2.imshow('Camera', frame)  #show video frames
 
