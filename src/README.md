@@ -1,1 +1,0 @@
-#SP RITE WRO FE 2024
