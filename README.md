@@ -16,7 +16,7 @@
   ## Repository Content
 - `Models/`: Engineering Drawings & PCB Designs
 - `Photos/`: Team photo & Vehicle photo
-- `basic openCV/`: - basic programs using opencv and distance for objectDetection
+- `basic openCV/`:  basic programs using opencv and distance for objectDetection
   - `draw.py`
   - `read images.py`
   - `read videos.py`
