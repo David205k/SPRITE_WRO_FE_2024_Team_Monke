@@ -23,7 +23,7 @@ Hello and welcome to Team `FE24_324_02` (Team Monke) GitHub repository. This is 
   - `draw.py`
   - `read images.py`
   - `read videos.py`
-- `basic programs`
+- `basic programs/`
   - `tb6612fng_motorDriver_control`
 - `doc/`:  Documentation
   - `Engineering Documentation.docx` 
