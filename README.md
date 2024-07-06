@@ -22,7 +22,8 @@
   - `read videos.py`
 - `basic programs`
   - `tb6612fng_motorDriver_control`
-- `doc/`:  Documentation (Engineering Journal & Components list)
+- `doc/`:  Documentation
+  - `Engineering Documentation.docx` 
 - `ref/`: References for design idea & WRO_FE Rules, Field overview
 - `src/`: Main code
   - `main`
