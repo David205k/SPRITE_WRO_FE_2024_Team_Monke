@@ -8,6 +8,6 @@ Team Name: 		**Team Monke**
 
 
 Team Members: 	
-- **David Lim**
-- **Chong Qiyuan**
+- **Lim Jun Hong David**
+- **Chong Qi Yuan**
 - **Sachin Ilangovan**
