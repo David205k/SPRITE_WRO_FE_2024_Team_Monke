@@ -20,13 +20,14 @@
   - `draw.py`
   - `read images.py`
   - `read videos.py`
+- `basic programs`
+  - `tb6612fng_motorDriver_control`
 - `doc/`:  Documentation (Engineering Journal & Components list)
 - `ref/`: References for design idea & WRO_FE Rules, Field overview
 - `src/`: Main code
   - `main`
   - `pwmControl`
   - `tb6612fng`
-  - `tb6612fng_motorDriver_control`
   - `ultrasonicSensor_control`
 - `vid_demo/`: video demonstration of vehicle driving
 
