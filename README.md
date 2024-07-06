@@ -16,15 +16,15 @@
   ## Repository Content
 - `Models/`: Engineering Drawings & PCB Designs
 - `Photos/`: Team photo & Vehicle photo
-- `basic openCV/`: Team photo & Vehicle photo
+- `basic openCV/`: - basic programs using opencv and distance for objectDetection
+  - `draw.py`
+  - `read images.py`
+  - `read videos.py`
 - `doc/`:  Documentation (Engineering Journal & Components list)
 - `ref/`: References for design idea & WRO_FE Rules, Field overview
 - `src/`: Main code
 - `vid_demo/`: video demonstration of vehicle driving
 
 - .gitignore: gitignore file
-- draw.py: basic programs using opencv and distance for objectDetection
-- read images.py: basic programs using opencv and distance for objectDetection
-- read videos.py: basic programs using opencv and distance for objectDetection
 - README.md: This file
 
