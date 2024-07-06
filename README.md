@@ -1,6 +1,4 @@
 # SP RITE WRO FE 2024
-------------
-
 
 #### Team ID:			`FE24_324_02`
 
@@ -13,14 +11,12 @@
 - **Chong Qi Yuan**
 - **Sachin Ilangovan**
 
-
 ##Overview
-------------
+
 Hello and welcome to Team `FE24_324_02` (Team Monke) GitHub repository. This is the GitHub repository for SINGAPORE World Robot Olympiad Future Engineers 2024. For WRO FE 2024, the competition focuses on Self-Driving Cars and in the challenge a robotic vehicle needs to drive autonomously on a parkours that randomly changes for each competition round. This `README` will provide you with a quick overview of our process and resources we use for the competition. If you prefer a more thorough and detailed documentation of our journey for this competition, please check out our Engineering Journal that is also available in this GitHub repository `doc/`. Thank you
 
 
-  ##Repository Content
-  ------------
+## Repository Content
 - `Models/`: Engineering Drawings & PCB Designs
 - `Photos/`: Team photo & Vehicle photo
 - `basic openCV/`:  basic programs using opencv and distance for objectDetection
