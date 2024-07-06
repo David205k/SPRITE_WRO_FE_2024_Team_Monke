@@ -20,6 +20,7 @@ Hello and welcome to Team `FE24_324_02` (Team Monke) GitHub repository. This is 
 - `Models/`: Engineering Drawings & PCB Designs
 - `Photos/`: Team photo & Vehicle photo
 - `basic openCV/`:  basic programs using opencv and distance for objectDetection
+  - `objectDetection.py`
   - `draw.py`
   - `read images.py`
   - `read videos.py`
