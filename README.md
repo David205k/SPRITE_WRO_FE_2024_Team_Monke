@@ -17,7 +17,13 @@ Hello and welcome to Team `FE24_324_02` (Team Monke) GitHub repository. This is 
 
 
 ## Repository Content
-- `Models/`: Engineering Drawings & PCB Designs
+- `Models/`:
+  - Vehicle 3D Models
+  - Vehicle Engineering Drawings
+  - Electrical Circuit Diagram
+  - PCB Gerber File
+  - Parts List
+
 - `Photos/`: Team photo & Vehicle photo
 - `basic openCV/`:  basic programs using opencv and distance for objectDetection
   - `objectDetection.py`
