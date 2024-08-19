@@ -50,20 +50,20 @@ Hello and welcome to Team `FE24_324_02` (Team Monke) GitHub repository. This is 
     - `tb6612fng_motorDriver_control.py`
 
 - `t-photos/`: 2 photos => Official Team photo and funny Team photo
- - `Official.png`
- - `Funny.png`
+  - `Official.png`
+  - `Funny.png`
 
 - `v-photos`: 6 photos of vehicle from all 6 side
-    - `Top.png`
-    - `Right.png`
-    - `Left.png`
-    - `Back.png`
-    - `Front.png`
-    - `Bottom.png`
+  - `Top.png`
+  - `Right.png`
+  - `Left.png`
+  - `Back.png`
+  - `Front.png`
+  - `Bottom.png`
 
 - video: YouTube Video of vehicle demonstration in challenge
-    - `Open Challenge.md`
-    - `Obstacle Challenge.md`
+  - `Open Challenge.md`
+  - `Obstacle Challenge.md`
 
 - .gitignore: gitignore file
 - README.md: This file
