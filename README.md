@@ -18,21 +18,21 @@ Hello and welcome to Team `FE24_324_02` (Team Monke) GitHub repository. This is 
 
 ## Repository Content
 - `Models/`:
-  - Vehicle 3D Models
-  - Vehicle Engineering Drawings
-  - Electrical Circuit Diagram
-  - PCB Gerber File
-  - Parts List
+  - `Vehicle 3D Models`
+  - `Vehicle Engineering Drawings`
+  - `Electrical Circuit Diagram`
+  - `PCB Gerber File`
+  - `Parts List`
 
 - `Photos/`: photos of FE Team
-  - Team photo
-  - Vehicle photo
-    - Top
-    - Right
-    - Left
-    - Back
-    - Front
-    - Bottom
+  - `Team photo`
+  - `Vehicle photo`
+    - `Top`
+    - `Right`
+    - `Left`
+    - `Back`
+    - `Front`
+    - `Bottom`
 
 - `basic openCV/`:  basic programs using opencv and distance for objectDetection
   - `objectDetection.py`
@@ -43,9 +43,9 @@ Hello and welcome to Team `FE24_324_02` (Team Monke) GitHub repository. This is 
   - `tb6612fng_motorDriver_control`
 - `doc/`:  Documentation and video demonstration
   - `Engineering Documentation.docx`
-  - YouTube Video
-    - Open Challenge
-    - Obstacle Challenge 
+  - `YouTube Video`
+    - `Open Challenge`
+    - `Obstacle Challenge`
 - `ref/`: References for design idea & WRO_FE Rules, Field overview
 - `src/`: Main code
   - `main`
