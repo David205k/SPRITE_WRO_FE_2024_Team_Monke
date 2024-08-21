@@ -1,7 +1,6 @@
 # example on using tb6612fng motor driver to control a DC Motor
 # by David Lim 7/6/2024 Friday
 import RPi.GPIO as GPIO # use RPi library for controlling GPIO pins
-import ultrasonicSensor_control as us
 
 GPIO.setwarnings(False) # turn off warnings for pins (if 1if pins were previously used and not released properly there will be warnings)
 GPIO.setmode(GPIO.BOARD) #  pins were previously used and not released properly there will be warnings)
@@ -12,6 +11,7 @@ servo = 29
 pwmA = 35
 ai2 = 40
 ai1 = 36
+
 stby = 37
 
 GPIO.setmode(GPIO.BOARD) # pin name convention used is pin numbers on board
@@ -37,11 +37,8 @@ GPIO.output(stby, GPIO.HIGH)
 servo_pwm = GPIO.PWM(servo, 50) # set pwm frequency to 50
 servo_pwm.start(5) # set duty cycle to 5
 
-us1 = us.ultrasonic(16, 18)
-
 while True:
 
-    #print(us1.getDist())
 
     userInput = input()
     direction, speed = userInput[0], userInput[1:]
@@ -60,13 +57,17 @@ while True:
         GPIO.output(ai2, GPIO.HIGH)
 
     elif direction == 'r': # right
-        servo_pwm.ChangeDutyCycle(6)
+        angle = 135
+        duty = (angle / 180.0) * (9-2) + 2
+        servo_pwm.ChangeDutyCycle(duty)
 
     elif direction == 'l': # left
-        servo_pwm.ChangeDutyCycle(2)
+        angle = 45
+        duty = (angle / 180.0) * (9-2) + 2
+        servo_pwm.ChangeDutyCycle(duty)
 
-    elif direction == 'u': # left
-        servo_pwm.ChangeDutyCycle(4.5)
+    elif direction == 'u': # front
+        servo_pwm.ChangeDutyCycle(6)
 
     elif direction == 's': # stop
         GPIO.output(ai1, GPIO.LOW)
