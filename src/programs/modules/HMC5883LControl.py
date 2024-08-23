@@ -61,21 +61,21 @@ class compass:
         
         return heading_deg
 
-    def getAngle(self):
+    def getAngle(self, calibrate):
 
         x = self.read_raw_data(self.X_MSB)
         y = self.read_raw_data(self.Y_MSB)
         z = self.read_raw_data(self.Z_MSB)
 
-        return round(self.compute_heading(x,y))
+        heading = round(self.compute_heading(x,y))
+
+        if calibrate == 1:
+            self.startPos = heading
+
+        if 360 >= heading >= self.startPos: 
+            angle = heading - self.startPos
+        elif 0 <= heading < self.startPos:
+            angle = heading + (360 - self.startPos)        
+
+        return angle
         
-
-
-direction = compass(0x1E)
-
-while True:
-    
-    try:
-        print(f"direction = {direction.getAngle()}")
-    except KeyboardInterrupt:
-        break  
