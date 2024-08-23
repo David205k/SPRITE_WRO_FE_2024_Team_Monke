@@ -19,7 +19,7 @@ def setup():
     bus.write_byte_data(ADDRESS, MODE, 0x00)  # Continuous measurement mode
  
 
- def read_raw_data(addr):
+def read_raw_data(addr):
     # Read raw 16-bit value
     high = bus.read_byte_data(ADDRESS, addr)
     low = bus.read_byte_data(ADDRESS, addr+1)
