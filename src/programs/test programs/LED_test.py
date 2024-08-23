@@ -1,4 +1,9 @@
-import RGB_LED_control as RGB
+import sys
+
+sys.path.append('/home/monke/WRO FE 2024 (Repository)/src/programs/modules')
+
+import RGBLEDControl as RGB
+
 import RPi.GPIO as GPIO # use RPi library for controlling GPIO pins
 
 GPIO.setwarnings(False) # turn off warnings for pins (if 1if pins were previously used and not released properly there will be warnings)

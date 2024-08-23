@@ -19,9 +19,20 @@ class LED:
 
 
     def rgb(self, red=0, green=0, blue=0): # set led colour
-        self.pwmRed.setPwm(abs(red))
-        self.pwmGreen.setPwm(abs(green))
-        self.pwmBlue.setPwm(abs(blue))
+
+        if red > 255:
+            red = 255
+
+        if green > 255:
+            green = 255
+
+        if blue > 255:
+            blue = 255
+
+
+        self.pwmRed.setPwm(round(abs((red/255)*100)))
+        self.pwmGreen.setPwm(round(abs(green/255)*100))
+        self.pwmBlue.setPwm(round(abs(blue/255)*100))
     
     def off(self): # turn off led
         self.pwmRed.setPwm(0)

@@ -1,20 +1,27 @@
 import RPi.GPIO as GPIO # use RPi library for controlling GPIO pins
 import time
-
+import math
+import logging
+import os, sys
+   
 # modules for controlling components
 import modules.Tb6612fngControl as Tb6612fng
 import modules.PwmControl as PwmControl
 import modules.RGBLEDControl as RGB
 from gpiozero import DistanceSensor
 
+from gpiozero.pins.pigpio import PiGPIOFactory
+from gpiozero import AngularServo
+
 # modules for camera vision 
 import cv2
 from PIL import Image
 from picamera2 import Picamera2
 
-
 GPIO.setwarnings(False) # turn off warnings for pins (if pins were previously used and not released properly there will be warnings)
 GPIO.setmode(GPIO.BOARD) # pin name convention used is pin numbers on board
+
+WHEELBASE = 0.12
 
 picam2 = Picamera2()
 picam2.preview_configuration.main.size=(1920,1000)
@@ -22,13 +29,15 @@ picam2.preview_configuration.main.format = 'RGB888'
 picam2.start()
 
 # initialise components 
-servo = PwmControl.pwm(pin=29, freq=50, startDuty=5) 
-dcMotor = Tb6612fng.motor(pwmA=35, ai1=40, ai2=36) 
-LED = RGB.LED(red=8, blue=12, green=10)
+factory = PiGPIOFactory()
+servo = AngularServo(5, min_angle=-90, max_angle=90, min_pulse_width=0.0004, max_pulse_width=0.0026, pin_factory=factory)
+ 
+car = Tb6612fng.motor(stby=37, pwmA=35, ai1=36, ai2=40) 
+LED = RGB.LED(red=8, blue=12, green=10) 
 
-us2 = DistanceSensor(echo=27, trigger=22) #pins are gpio pins
-us3 = DistanceSensor(echo=10, trigger=9) #pins are gpio pins
-us4 = DistanceSensor(echo=6, trigger=13) #pins are gpio pins
+us2 = DistanceSensor(echo=27, trigger=22, max_distance=3) #pins are gpio pins
+us3 = DistanceSensor(echo=10, trigger=9, max_distance=3) #pins are gpio pins
+us4 = DistanceSensor(echo=6, trigger=13, max_distance=3) #pins are gpio pins
 
 class trafficSign:
 
@@ -63,7 +72,20 @@ class trafficSign:
                 #print("distance = ", (frame.shape[0]/self.height)*self.minDist) #print distance of object to camera
                 self.dist = int((frame.shape[0]/self.height)*self.minDist)
 
+def turn(radius, direction):
 
+    angle = math.degrees(math.asin(WHEELBASE/radius))
+
+    # print(angle)
+
+    if (direction == "left"):
+        servo.angle = angle - 7
+        # servo.write(90 + angle)
+    elif (direction == "right"):
+        servo.angle = -angle - 7
+        # servo.write(90 - angle)
+
+done = 0
 
 while True:
 
@@ -90,30 +112,39 @@ while True:
     cv2.putText(frame, "Dist: " + str(green.dist), (frame.shape[1] - 120, 440), cv2.FONT_HERSHEY_TRIPLEX, 1.0, (0, 255, 0), 1)
     cv2.putText(frame, "Dist: " + str(red.dist), (20, 440), cv2.FONT_HERSHEY_TRIPLEX, 1.0, (0, 0, 255), 1)
 
-    cv2.imshow('Camera', frame)  #show video
+    cv2.imshow('Camera', frame)  #show video   
 
-    dcMotor.setSpeed(80)   
+    # main code 
+    # -------------------------------------------------------------------------------------------------------------
 
-    # Get distances
-    # frontDist = us4.distance*100 
+    # Get distances in cm
+    frontDist = us4.distance*100 
     leftDist = us2.distance*100
-    # rightDist = us3.distance*100
+    rightDist = us3.distance*100
 
-    if green.X > frame.shape[1]//2:
-        dcMotor.setSpeed(50) 
-        servo.setPwm(3)
-    else:
-        dcMotor.setSpeed(80) 
-        servo.setPwm(5) 
+    if frontDist <= 70 and done == 0:
+        done = 1
 
-    if leftDist < 25:
-        LED.rgb(0,100,0)
-        dcMotor.setSpeed(50) 
-        servo.setPwm(7)
+        if leftDist < rightDist : 
+            LED.rgb(255,255,0) #yellow
+            turn(0.2, "right") 
+            logging.info(('Turning right'))
+        else:
+            LED.rgb(255,0,255) #purple'Front: ' + fron
+            turn(0.2, "left")
+            logging.info(('Turning left'))
+
+        car.speed(20)   
+        time.sleep(2)
+
     else:
-        LED.off()
-        dcMotor.setSpeed(80) 
-        servo.setPwm(5)
+        LED.off() 
+        servo.angle = 0 - 7
+        car.speed(30) 
+        logging.info(f'front: {frontDist} left: {leftDist} right: {rightDist}')
+
+    if frontDist >= 100:
+        done = 0
 
 
     if cv2.waitKey(1) & 0xFF == ord('q'): #break out of loop if 'q' is pressed

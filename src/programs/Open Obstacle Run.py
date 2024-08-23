@@ -28,7 +28,7 @@ pi_pwm = GPIO.PWM(pwmA, 100)  # PWM frequency for motor (100 Hz)
 pi_pwm.start(0)  # Initial duty cycle (0%)
 
 # Set up ultrasonic sensors
-us2 = DistanceSensor(echo=27, trigger=22) #pins care gpio pins
+us2 = DistanceSensor(echo=27, trigger=22) #pins car        LED.rgb(100,0,0) #rede gpio pins
 us3 = DistanceSensor(echo=10, trigger=9) #pins are gpio pins
 us4 = DistanceSensor(echo=6, trigger=13) #pins are gpio pins
 
