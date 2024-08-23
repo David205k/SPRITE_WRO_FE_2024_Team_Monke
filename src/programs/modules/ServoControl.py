@@ -1,4 +1,3 @@
-import RPi.GPIO as GPIO # use RPi library for controlling GPIO pins
 import modules.PwmControl as PwmControl
 
 class servo:
@@ -15,9 +14,10 @@ class servo:
 
         if ang > 180:
             ang = 180
+
         if ang < 0:
             ang = 0
 
-        duty = (ang / 180.0) * (10-2) + 2
+        duty = (ang / 180.0) * (self.maxDuty-self.minDuty) + self.minDuty
         self.servoPwm.setPwm(duty)    
 
