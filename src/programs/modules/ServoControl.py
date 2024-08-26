@@ -1,4 +1,4 @@
-import PwmControl as PwmControl
+import modules.PwmControl as PwmControl
 
 class servo:
 
