@@ -21,8 +21,8 @@ GPIO.setmode(GPIO.BOARD) # pin name convention used is pin numbers on board
 factory = PiGPIOFactory()
 
 #variables
-WHEELBASE = 0.12
-TOTALROUNDS = 2
+WHEELBASE = 12      # vehicle wheelbase in cm
+TOTALROUNDS = 4
 compassDirection = 0
 
 # camera vision
@@ -46,20 +46,24 @@ except OSError:
         print("Connection successful!")
         break 
 
-servo = myservo.myServo(gpioPin=5, startPos=0)
+servo = myservo.myServo(gpioPin=5, startPos=0, minAng=-70, maxAng=70)
 car = Tb6612fng.motor(stby=37, pwmA=35, ai1=36, ai2=40) 
 LED = RGB.LED(red=8, blue=12, green=10)  
 
-us2 = DistanceSensor(echo=27, trigger=22, max_distance=3) # pins are gpio pins
-us3 = DistanceSensor(echo=10, trigger=9, max_distance=3) # pins are gpio pins
-us4 = DistanceSensor(echo=6, trigger=13, max_distance=3) # pins are gpio pins
+us2 = DistanceSensor(echo=27, trigger=22, max_distance=3, pin_factory=factory) # pins are gpio pins
+us3 = DistanceSensor(echo=10, trigger=9, max_distance=3, pin_factory=factory) # pins are gpio pins
+us4 = DistanceSensor(echo=6, trigger=13, max_distance=3, pin_factory=factory) # pins are gpio pins
 
 startBut = 16
-stopBut = 18
+#stopBut = 32
 GPIO.setup(startBut,GPIO.IN)
-GPIO.setup(stopBut,GPIO.IN)
+#GPIO.setup(stopBut,GPIO.IN)
 
-def turn(radius, direction):
+# radius in cm
+def turn(radius, direction): 
+
+    if radius < WHEELBASE:
+        radius = WHEELBASE
 
     ang = math.degrees(math.asin(WHEELBASE/radius))
 
@@ -91,7 +95,7 @@ def keepStraight(headingDirection):
 
     error = getAngularDiff(headingDirection, compassDirection) * (90/180)
 
-    Kp, Kd, Ki =  1, 1, 0
+    Kp, Kd, Ki =  1, 0, 0
     
     P = error
     D = error - prevError1
@@ -100,13 +104,6 @@ def keepStraight(headingDirection):
 
     return P*Kp + D*Kd
 
-"""
-def getDistOffset(headingDirection):
-    
-    ang = math.radians(getAngularDiff(angle, headingDirection))
-
-    return round(leftDist*math.cos(ang) - rightDist*math.cos(ang))
-"""
 prevError2 = 0
 def keepInMiddle(headingDirection, leftDist, rightDist, setDist):
 
@@ -116,7 +113,7 @@ def keepInMiddle(headingDirection, leftDist, rightDist, setDist):
     ang = math.radians(getAngularDiff(compassDirection, headingDirection))
     error = round(leftDist*math.cos(ang) - rightDist*math.cos(ang)) + setDist
 
-    Kp, Kd, Ki = 1, 1, 0
+    Kp, Kd, Ki = 0.5, 0, 0
 
     P = error 
     D = error - prevError2
@@ -152,19 +149,13 @@ def main():
             canTurn = True
             noOfTurns = 0
         
-        if GPIO.input(stopBut): # stop the car
-            start = False
-
-            # reset vehicle components
-            servo.write(0)
-            car.speed(0)
-            LED.off()
-
         if start:
 
-            # get US distances in cm
+            # try:
+                # get US distances in cm
             frontDist, leftDist, rightDist = round(us4.distance*100), round(us2.distance*100), round(us3.distance*100)
-            
+            #except 
+
             # get compass direction
             try:
                 compassDirection = compass.getAngle()
@@ -178,34 +169,40 @@ def main():
                     print("Connection successful!")
                     break 
 
-            if frontDist <= 1 and canTurn and noOfTurns*4 < TOTALROUNDS:
+            turnDist = 70 # dist in cm
+            if frontDist <= turnDist and canTurn:
 
                 canTurn = False
 
                 if leftDist <= rightDist:
-                    turn(70-100/2, "right")
+                    turn(turnDist - 100/2, "right")
                     headingDirection += 90
                 elif leftDist > rightDist:
-                    turn(70-100/2, "left")
+                    turn(turnDist - 100/2, "left")
                     headingDirection -= 90
 
                 noOfTurns += 1
                 LED.rgb(0,0,255) # blue LED
-                time.sleep(0.5)
+                time.sleep(2)
 
             else:
                 LED.rgb(0,255,0)
-                distGain, angularGain = 0, 1
-                angle = keepInMiddle(headingDirection, leftDist, rightDist, 0)*distGain + keepStraight(headingDirection)*angularGain
+                angle = keepStraight(headingDirection)
 
                 servo.write(angle)
 
                 car.speed(30)
 
-            if frontDist >= 100: # reset variable
-                canTurn = True
+            print(f"Front: {frontDist} Left: {leftDist} right: {rightDist} direction: {compassDirection}")
 
-            print(f"angle: {angle} Middle: {keepInMiddle(headingDirection, leftDist, rightDist, 0)} Str: {keepStraight(headingDirection)} direciont: {compassDirection}")
+            if frontDist >= turnDist+60: # reset variable
+                canTurn = True
+        else:
+            # reset vehicle components
+            servo.write(0)
+            car.speed(0)
+            LED.off()
+            
 
 if __name__ == "__main__":
     try:
