@@ -13,7 +13,12 @@
 
 ## Overview
 #### Introduction	
-Hello and welcome to Team `FE24_324_02` (Team Monke) GitHub repository. This is the GitHub repository for SINGAPORE World Robot Olympiad Future Engineers 2024. For WRO FE 2024, the competition focuses on Self-Driving Cars and in the challenge a robotic vehicle needs to drive autonomously on a parkours that randomly changes for each competition round. This `README` will provide you with a quick overview of our process and resources we use for the competition. If you prefer a more thorough and detailed documentation of our journey for this competition, please check out our Engineering Journal that is also available in this GitHub repository `doc/`. Thank you
+Hello and welcome to Team `FE24_324_02` (Team Monke) GitHub repository. This is the GitHub repository for SINGAPORE World Robot Olympiad Future Engineers 2024. For WRO FE 2024, the competition focuses on Self-Driving Cars and in the challenge a robotic vehicle needs to drive autonomously on a parkours that randomly changes for each competition round. 
+In an ever-increasing automated world, the use of Autonomous Guided Vehicles (AGV) has become more prevalent. Furthermore, with recent improvements in Artificial Intelligence, specifically Computer Vision (CV), the integration of CV with AGVs is in high demand. Some possible applications with this integration include: 
+•	Commercial: Self-Driving cars, housekeeping robots
+•	Industry: Fully autonomous factory robots
+•	Defence: Autonomous drones
+This `README` will provide you with a quick overview of our process and resources we use for the competition. If you prefer a more thorough and detailed documentation of our journey for this competition, please check out our Engineering Journal that is also available in this GitHub repository `doc/`. Thank you
 
 
 ## Repository Content
@@ -68,3 +73,19 @@ Hello and welcome to Team `FE24_324_02` (Team Monke) GitHub repository. This is 
 - .gitignore: gitignore file
 - README.md: This file
 
+#### Hardware used
+
+- MG996R Servo Motor
+- 12v 380rpm 1.4kgcm Brushed DC Motor
+- Full Metal Differential Gear Set
+- Raspberry Pi 4 Model B
+- High precision Ultrasonic Range Finder US-015
+- Raspberry Pi Camera Module 3
+- TB6612FNG Motor Driver
+- Ball Bearings 6x13x5 mm
+- 80mm Plastic Wheels
+- Small Plastic Wheels SPG330/SPG50 (80mm)
+- HMC5883L Module Triple Axis compass
+- Turnigy Lipo Pack 5000mAh 3S 25C W/XT-90
+- LM2596 3A Buck Module with Display
+- Custom designed PCB
