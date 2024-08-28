@@ -1,5 +1,8 @@
 # SP RITE WRO FE 2024
 
+## Team Information:
+![image](https://github.com/user-attachments/assets/395f8e3e-d5fa-4c2a-b530-951f97a5dc62)
+
 #### Team ID:			`FE24_324_02`
 
 
@@ -10,8 +13,6 @@
 - **Lim Jun Hong David**
 - **Chong Qi Yuan**
 - **Sachin Ilangovan**
-
-![image](https://github.com/user-attachments/assets/395f8e3e-d5fa-4c2a-b530-951f97a5dc62)
 
 ## Overview
 #### Introduction	
