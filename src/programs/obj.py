@@ -54,9 +54,11 @@ us2 = DistanceSensor(echo=27, trigger=22, max_distance=3, pin_factory=factory) #
 us3 = DistanceSensor(echo=10, trigger=9, max_distance=3, pin_factory=factory) # pins are gpio pins
 us4 = DistanceSensor(echo=6, trigger=13, max_distance=3, pin_factory=factory) # pins are gpio pins
 
-startBut = 16
+startBut1 = 16
+startBut2 = 18
 #stopBut = 32
-GPIO.setup(startBut,GPIO.IN)
+GPIO.setup(startBut1,GPIO.IN)
+GPIO.setup(startBut2,GPIO.IN)
 #GPIO.setup(stopBut,GPIO.IN)
 
 # radius in cm
@@ -139,10 +141,13 @@ def main():
 
     while True:
 
-        compass.calibrate(GPIO.input(startBut)) # set direction value to 0 when button pressed
+        compass.calibrate(GPIO.input(startBut1) and GPIO.input(startBut2)) # set direction value to 0 when button pressed
 
-        if GPIO.input(startBut): # start the car
+        if GPIO.input(startBut1) and GPIO.input(startBut2): # start the car
             start = True
+
+            LED.rgb(255,255,255)
+            time.sleep(0.01)
 
             # reset variables
             headingDirection = 0
@@ -151,10 +156,8 @@ def main():
         
         if start:
 
-            # try:
-                # get US distances in cm
+            # get US distances in cm
             frontDist, leftDist, rightDist = round(us4.distance*100), round(us2.distance*100), round(us3.distance*100)
-            #except 
 
             # get compass direction
             try:
@@ -184,7 +187,6 @@ def main():
                 noOfTurns += 1
                 LED.rgb(0,0,255) # blue LED
                 time.sleep(2)
-
             else:
                 LED.rgb(0,255,0)
                 angle = keepStraight(headingDirection)
@@ -193,10 +195,13 @@ def main():
 
                 car.speed(30)
 
-            print(f"Front: {frontDist} Left: {leftDist} right: {rightDist} direction: {compassDirection}")
+                print(f"Heading: {compass.heading} .Front: {frontDist} Left: {leftDist} right: {rightDist} direction: {compassDirection} angle: {angle}")
 
-            if frontDist >= turnDist+60: # reset variable
+            if frontDist >= turnDist+100: # reset variable
                 canTurn = True
+
+            if frontDist <= 150:
+                start = False
         else:
             # reset vehicle components
             servo.write(0)
