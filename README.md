@@ -33,7 +33,8 @@ This `README` will provide you with a quick overview of our process and resource
   - `Parts list`
 
 - `models/`:
-  - `Vehicle 3D Models`
+  - `Vehicle 3D Models` all ipt & iam files for vehicle design
+    
   - `Engineering Drawings`
     - `Bottom Section Exploded view.png`
     - `Isometric view.png`
@@ -42,7 +43,8 @@ This `README` will provide you with a quick overview of our process and resource
     - `bottom disassembly.dwg`
     - `top disassembly.dwg`
     - `vehicle isometric view.dwg`
-    - `vehicle orthogonal drawing.dwg `
+    - `vehicle orthogonal drawing.dwg`
+
   - `Disassembly Video`
     - `bottom disassembly.ipn`
     - `bottom disassembly.mp4`
@@ -55,7 +57,11 @@ This `README` will provide you with a quick overview of our process and resource
   - ``
 
 - `schemes/`: schematic diagrams of the electromechanical components illustrating all the elements used in the vehicle and how they connect to each other
-  - ``
+  - `PCB Schematic Diagram.png`
+  - `PCB ver.1.jpg`
+  - `WRO_FE_PCB.fzz`
+  - `WRO_FE_etch_copper_bottom.pdf`
+  - `WRO_FE_schematic.fzz`
 
 - `src/`: All python raspberry pi code to control software for all components
   - `main`
