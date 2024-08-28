@@ -61,7 +61,7 @@ class compass:
         
         return heading_deg
 
-    def getAngle(self):
+    def getAngle(self, calibrate):
 
         x = self.read_raw_data(self.X_MSB)
         y = self.read_raw_data(self.Y_MSB)
