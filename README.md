@@ -30,13 +30,26 @@ This `README` will provide you with a quick overview of our process and resource
 
 - `doc/`:  Documentation
   - `Engineering Documentation.docx`
+  - `Parts list`
 
 - `models/`:
   - `Vehicle 3D Models`
-  - `Vehicle Engineering Drawings`
-  - `Electrical Circuit Diagram`
-  - `PCB Gerber File`
-  - `Parts List`
+  - `Engineering Drawings`
+    - `Bottom Section Exploded view.png`
+    - `Isometric view.png`
+    - `Orthographic view.png`
+    - `Top Section Exploded view.png`
+    - `bottom disassembly.dwg`
+    - `top disassembly.dwg`
+    - `vehicle isometric view.dwg`
+    - `vehicle orthogonal drawing.dwg `
+  - `Disassembly Video`
+    - `bottom disassembly.ipn`
+    - `bottom disassembly.mp4`
+    - `top disassembly.ipn`
+    - `top disassembly.mp4`
+  - `MONKE_BUST.stl`
+  - `WRO_FE_2024.ipj.lnk`
 
 - `ref/`: References for design idea & WRO_FE Rules, Field overview
   - ``
