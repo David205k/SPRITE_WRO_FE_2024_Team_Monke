@@ -54,7 +54,7 @@ This `README` will provide you with a quick overview of our process and resource
   - `WRO_FE_2024.ipj.lnk`
 
 - `ref/`: References for design idea & WRO_FE Rules, Field overview
-  - ``
+  - `References.txt`
 
 - `schemes/`: schematic diagrams of the electromechanical components illustrating all the elements used in the vehicle and how they connect to each other
   - `PCB Schematic Diagram.png`
@@ -62,6 +62,9 @@ This `README` will provide you with a quick overview of our process and resource
   - `WRO_FE_PCB.fzz`
   - `WRO_FE_etch_copper_bottom.pdf`
   - `WRO_FE_schematic.fzz`
+  - `front_PCB.png`
+  - `Back_PCB.png`
+  - `Soldered_PCB.jpg`
 
 - `src/`: All python raspberry pi code to control software for all components
   - `main`
