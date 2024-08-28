@@ -68,9 +68,7 @@ class compass:
         z = self.read_raw_data(self.Z_MSB)
 
         heading = round(self.compute_heading(x,y))
-
-        if calibrate == 1:
-            self.startPos = heading
+        self.heading = heading 
 
         if 360 >= heading >= self.startPos: 
             angle = heading - self.startPos
@@ -79,3 +77,6 @@ class compass:
 
         return angle
         
+    def calibrate(self, signal):
+        if signal == 1:
+            self.startPos = self.heading
