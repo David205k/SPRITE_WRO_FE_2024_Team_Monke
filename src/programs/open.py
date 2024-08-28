@@ -10,11 +10,6 @@ import modules.HMC5883LControl as HMC5883L
 import modules.ServoControl_gpiozero as myservo
 from gpiozero import DistanceSensor
 
-# modules for camera vision 
-import cv2
-from PIL import Image      
-from picamera2 import Picamera2
-
 GPIO.setwarnings(False) # turn off warnings for pins (if pins were previously used and not released properly there will be warnings)
 GPIO.setmode(GPIO.BOARD) # pin name convention used is pin numbers on board
 factory = PiGPIOFactory()
@@ -24,12 +19,6 @@ WHEELBASE = 12          # vehicle wheelbase in cm
 TOTALROUNDS = 3
 compassDirection = 0    # headings from the compass module
 drivingDirection = "CW" # round driving direction
-
-# camera vision
-picam2 = Picamera2()
-picam2.preview_configuration.main.size=(1920,1000)
-picam2.preview_configuration.main.format = 'RGB888'
-picam2.start()
 
 # initialise components  
 try: 
@@ -70,14 +59,14 @@ def getAngularDiff(intendedAngle, currentAng): # cw => -ve ccw => +ve
     return -angDiff
 
 # radius is in cm
-def turn(radius, headingDirection, direction): 
+def turn(radius, headingDirection, direction, nextAct): 
 
     angTolerance = 5
 
     angleDiff = getAngularDiff(headingDirection, compassDirection)
 
     if -angTolerance <= angleDiff <= angTolerance:
-        return None
+        return nextAct
     else:
         if radius < WHEELBASE:
             radius = WHEELBASE
@@ -197,10 +186,10 @@ def main():
             match action:
 
                 case "corner right":
-                    action = turn(20, headingDirection, "right")
+                    action = turn(20, headingDirection, "right", nextAct=None)
 
                 case "corner left":
-                    action = turn(20, headingDirection, "left")
+                    action = turn(20, headingDirection, "left", nextAct=None)
 
                 case _:  
 
