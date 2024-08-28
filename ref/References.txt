@@ -1,1 +1,16 @@
 List References in Here:
+
+WRO FE Rule Book:
+https://wro-association.org/wp-content/uploads/WRO-2024-Future-Engineers-Self-Driving-Cars-General-Rules.pdf
+
+VNC Viewer References:
+https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://www.realvnc.com/en/connect/download/viewer/&ved=2ahUKEwiW_4zD2JeIAxUXS2wGHda5O6kQFnoECAkQAQ&usg=AOvVaw0UTdY8kQhw7EWigV5-iC08
+https://youtu.be/ikUH_wOesIY?si=3h6Y2FHPOmsgjrJ-
+https://youtu.be/ocWZ9QFgvXk?si=nr7zo171_FX9tkB3
+
+Programming References:
+https://how2electronics.com/interfacing-hmc5883l-magnetometer-with-raspberry-pi/
+https://forum.arduino.cc/t/multiple-and-simultaneous-ultrasonic-sensor-controlling/266009
+
+GitHub References:
+https://github.com/World-Robot-Olympiad-Association/wro2022-fe-template
