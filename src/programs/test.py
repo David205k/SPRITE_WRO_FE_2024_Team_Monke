@@ -138,7 +138,7 @@ def main():
         elif headingDirection > 360:
             headingDirection -= 360
 
-        compass.calibrate(GPIO.input(startBut1)) # set direction value to 0 when button pressed
+        compass.setHome(GPIO.input(startBut1)) # set direction value to 0 when button pressed
 
         print(f"Front: {frontDist} But1: {GPIO.input(startBut1)}  But2: {GPIO.input(startBut2)} compass: {compassDirection} headingDirection: {headingDirection}")
 

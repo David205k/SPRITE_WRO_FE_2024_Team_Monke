@@ -153,7 +153,7 @@ def main():
         elif headingDirection > 360:
             headingDirection -= 360
 
-        compass.calibrate(GPIO.input(startBut1)) # set direction value to 0 when button pressed
+        compass.setHome(GPIO.input(startBut1)) # set direction value to 0 when button pressed
 
         capture = picam2.capture_array()
 

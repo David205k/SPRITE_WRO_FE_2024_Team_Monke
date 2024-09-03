@@ -63,8 +63,8 @@ blue_lower, blue_upper = np.array([80, 130, 50]), np.array([140, 180, 90])
 orange_lower, orange_upper = np.array([0, 190, 80]), np.array([20, 255, 150])
 
 # traffic sign hsv values
-green_lower, green_upper = (40, 100, 100), (70, 255, 255) 
-red_lower, red_upper = (0, 150, 100), (10, 255, 255)
+green_lower, green_upper = (30, 150, 20), (100, 255, 80) 
+red_lower, red_upper = (0, 215, 50), (4, 255, 180)
 
 minH, minS, minV = 9999, 9999, 9999
 maxH, maxS, maxV = -9999, -9999, -9999
@@ -75,7 +75,11 @@ picam2.preview_configuration.main.format = 'RGB888'
 picam2.start()
 
 def get_mouse_position(event, x, y, flags, param):
+
+    global hsv_frame
+
     if event == cv2.EVENT_MOUSEMOVE:  # If the mouse is moved
+        # pass
         print(f"pixel hsv: {hsv_frame[y, x]}")
 
         # h, s, v = hsv_frame[y, x]
@@ -158,28 +162,28 @@ def getDrivingDirection(hsv_frame):
     blue_mask = cv2.inRange(hsv_frame, blue_lower, blue_upper)
     orange_mask = cv2.inRange(hsv_frame, orange_lower, orange_upper)
 
-    # Scan the frame from top to bottom
-    for y in range(hsv_frame.shape[0]):  # Loop over rows (height)
+     # Scan the frame from bottom to top
+    for y in range(hsv_frame.shape[0]-1, -1, -1):  # Loop over rows (height)
         # Get the row masks
         blue_row = blue_mask[y, :]
         orange_row = orange_mask[y, :]
 
         # Check if blue or orange is detected first
         if np.any(blue_row):  # Check if any blue pixel is present
-            print("Round is clockwise")
+            print("Round is anti clockwise")
             LED.rgb(0,0,255) # blue light
             time.sleep(0.5)
-            return "CW"
+            return "ACW"
 
         elif np.any(orange_row):  # Check if any orange pixel is present
             print("Round is clockwise")
-            LED.rgb(255,69,0) #orange light
+            LED.rgb(255,69,0) # orange light
             time.sleep(0.5)
-            return "ACW"
+            return "CW"
     else:
         print("No blue or orange detected in the frame")
         return "unknown"
-
+    
 def readSensors():
 
     global frontDist, leftDist, rightDist 
@@ -197,7 +201,7 @@ def readSensors():
     actualLeft = abs(leftDist*math.cos(ang))
     actualRight = abs(rightDist*math.cos(ang))
     
-    # read compass angle (catch exception when compass is not connected properly)
+    # read compass angle (catch exception when compass is not connected proper ly)
     while True:
         try:
             compassDirection = compass.getAngle()
@@ -206,9 +210,12 @@ def readSensors():
             continue
         break
 
+doOnce = 0
+start_time = 0
 def executeAction(action):
 
     global headingDirection, drivingDirection
+    global doOnce, start_time
 
     completed = None
 
@@ -217,8 +224,10 @@ def executeAction(action):
         case "corner_turn":
             LED.rgb(0,0,255) # blue light
 
+            turnRadius = int(action[0].split()[1])
             direction = "right" if drivingDirection == "CW" else "left"
-            completed = turn(20, direction, headingDirection, tolerance=10)
+
+            completed = turn(turnRadius, direction, headingDirection, tolerance=10)
 
         case "avoid_right":
     
@@ -248,18 +257,49 @@ def executeAction(action):
 
         case "avoid_obs_right":
 
-            LED.rgb(100, 100, 100)
+            LED.rgb(100, 0, 0)
 
-            completed = turn(20, "right", heading=int(action[0].split()[1]), tolerance=5)
+            completed = turn(20, "right", heading=int(action[0].split()[1]), tolerance=10)
             car.speed(20)
 
         case "recover_obs_left":
 
-            LED.rgb(50, 50, 50)
+            LED.rgb(100, 0, 0)
 
             completed = turn(20, "left", heading=headingDirection, tolerance=5)
+            car.speed(15)
+
+        case "avoid_obs_left":
+
+            LED.rgb(0, 100, 0)
+
+            completed = turn(20, "left", heading=int(action[0].split()[1]), tolerance=10)
+            car.speed(15)
+
+        case "recover_obs_right":
+
+            LED.rgb(0, 100, 0)
+
+            completed = turn(20, "right", heading=headingDirection, tolerance=5)
             car.speed(20)
-            
+
+        case "travel":
+
+            delay = float(action[0].split()[1])
+
+            if doOnce == 0:
+                doOnce = 1
+                start_time = time.time()
+
+            if time.time() - start_time >= delay or frontDist <= 10:
+                completed = True
+                doOnce = 0
+            else: 
+                completed = False
+
+            car.speed(20)   
+            servo.write(0)
+
         case "run":
             LED.rgb(0,255,0) # green light
             car.speed(20)
@@ -294,22 +334,27 @@ def main():
 
         # Convert the frame to HSV color space
         hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        #mask = cv2.inRange(hsv_frame, red_lower, red_upper)  # Create mask for the color
+        redMask = cv2.inRange(hsv_frame, red_lower, red_upper)  # Create mask for the color
+        greenMask = cv2.inRange(hsv_frame, green_lower, green_upper)  # Create mask for the color
 
-        green = Sign.TrafficSign(frame, boxColor=(0, 255, 0), lower=green_lower, upper=green_upper)
-        red = Sign.TrafficSign(frame, boxColor=(0, 0, 255), lower=red_lower, upper=red_upper)
+        green = Sign.TrafficSign(frame, boxColor=(0, 255, 0), lower=green_lower, upper=green_upper, minWidth=100, minHeight=200)
+        red = Sign.TrafficSign(frame, boxColor=(0, 0, 255), lower=red_lower, upper=red_upper, minWidth=50, minHeight=50)
 
         # Draw bounding box for the largest detected object
         frame, greenSign = green.printLargestBbox()
         frame, redSign = red.printLargestBbox()
 
-        cv2.imshow('preview', frame)
+        cv2.imshow('camera', frame)
+        cv2.imshow('red mask', redMask)
+        cv2.imshow('green mask', greenMask)
 
-        cv2.setMouseCallback('preview', get_mouse_position)
+        cv2.setMouseCallback('camera', get_mouse_position)
+
+        # print(f"red x,y: {red.x, red.y}")
 
         readSensors()
 
-        print(f"actionQueue: {actionQueue} compassDirec: {compassDirection}, heading: {headingDirection} turns: {noOfTurns} drivingDirection: {drivingDirection} f: {frontDist}, l: {leftDist} r: {rightDist}")
+        # print(f"clrDetect: {red.detectClr()} actionQueue: {actionQueue} compassDirec: {compassDirection}, heading: {headingDirection} turns: {noOfTurns} drivingDirection: {drivingDirection} f: {frontDist}, l: {leftDist} r: {rightDist}")
 
         # start the robot when button pressed
         if GPIO.input(startBut1) and GPIO.input(startBut2):
@@ -319,21 +364,21 @@ def main():
             headingDirection = noOfTurns = 0
             canTurn = True
             actionQueue.clear()
-            compass.calibrate()
+            compass.setHome()
 
             readSensors()   
 
             drivingDirection = getDrivingDirection(hsv_frame)
         
         # stop the robot when 3 rounds completed
-        if noOfTurns == 4 * TOTALROUNDS:
+        if noOfTurns == 4 * TOTALROUNDS and frontDist >= 150 and frontDist <=160 and canTurn == True:
             start = False
 
         if start:
 
             if actionQueue:
                 pass
-            elif frontDist <= 70 and canTurn and red.detectClr == None:
+            elif frontDist <= 70 and canTurn and red.detectClr() == None and green.detectClr() == None:
 
                 canTurn = False
 
@@ -347,19 +392,23 @@ def main():
 
                 noOfTurns += 1
 
-                actionQueue = deque(["corner_turn", "run"])
+                actionQueue = deque([f"corner_turn {20}", "run"])
 
-            elif leftDist <= 1:
+            # elif leftDist <= 1:
 
-                actionQueue = deque([f"avoid_right {headingDirection+30}", "recover_left"])
+            #     actionQueue = deque([f"avoid_right {headingDirection+30}", "recover_left"])
 
-            elif rightDist <= 1:
+            # elif rightDist <= 1:
 
-                actionQueue = deque([f"avoid_left {headingDirection-30}", "recover_right"])
+            #     actionQueue = deque([f"avoid_left {headingDirection-30}", "recover_right"])
 
             elif redSign:
 
-                actionQueue = deque([f"avoid_obs_right {headingDirection+90}", "recover_obs_left"])
+                actionQueue = deque([f"avoid_obs_right {headingDirection+45}", f"travel {0.4}", "recover_obs_left", f"travel {0.4}", f"avoid_left {headingDirection-45}", "recover_right"])
+
+            elif greenSign:
+
+                actionQueue = deque([f"avoid_obs_left {headingDirection-45}", f"travel {0.4}", "recover_obs_right"])
 
             else:
                 actionQueue = deque(["run"])
@@ -367,7 +416,6 @@ def main():
             if frontDist >= 130:
                 canTurn = True
             
-
             executeAction(actionQueue)
             
         else:

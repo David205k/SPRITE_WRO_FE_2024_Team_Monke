@@ -153,24 +153,25 @@ def getRoundDirection(hsv_frame):
     blue_mask = cv2.inRange(hsv_frame, blue_lower, blue_upper)
     orange_mask = cv2.inRange(hsv_frame, orange_lower, orange_upper)
 
-    # Scan the frame from top to bottom
-    for y in range(hsv_frame.shape[0]):  # Loop over rows (height)
+    # Scan the frame from bottom to top
+    for y in range(hsv_frame.shape[0]-1, -1, -1):  # Loop over rows (height)
         # Get the row masks
         blue_row = blue_mask[y, :]
         orange_row = orange_mask[y, :]
 
         # Check if blue or orange is detected first
         if np.any(blue_row):  # Check if any blue pixel is present
-            print("Round is clockwise")
+
+            print("Round is anti clockwise")
             LED.rgb(0,0,255) # blue light
             time.sleep(0.5)
-            return "CW"
+            return "ACW"
 
         elif np.any(orange_row):  # Check if any orange pixel is present
             print("Round is clockwise")
-            LED.rgb(255,69,0) #orange light
+            LED.rgb(255,69,0) # orange light
             time.sleep(0.5)
-            return "ACW"
+            return "CW"
     else:
         print("No blue or orange detected in the frame")
         return "unknown"
@@ -244,11 +245,14 @@ def main():
         # Convert the frame to HSV color space
         hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-        #cv2.imshow('preview', frame)
+        blue_mask = cv2.inRange(hsv_frame, blue_lower, blue_upper)
+        orange_mask = cv2.inRange(hsv_frame, orange_lower, orange_upper)
+
+        cv2.imshow('preview', frame)
 
         readSensors()
 
-        #print(f"actionQueue: {actionQueue} compassDirec: {compassDirection}, heading: {headingDirection} turns: {noOfTurns} drivingDirection: {drivingDirection} f: {frontDist}, l: {leftDist} r: {rightDist}")
+        print(f"compassDirec: {compassDirection}, heading: {headingDirection} drivingDirection: {drivingDirection} f: {frontDist}, l: {leftDist} r: {rightDist}")
 
         # start the robot when button pressed
         if GPIO.input(startBut1) and GPIO.input(startBut2):
@@ -258,21 +262,21 @@ def main():
             headingDirection = noOfTurns = 0
             canTurn = True
             actionQueue.clear()
-            compass.calibrate()
+            compass.setHome()
 
             readSensors()   
 
             drivingDirection = getRoundDirection(hsv_frame)
         
         # stop the robot when 3 rounds completed
-        if noOfTurns == 4 * TOTALROUNDS and frontDist >= 150 and frontDist <=160:
+        if noOfTurns == 4 * TOTALROUNDS and frontDist >= 150 and frontDist <=160 and canTurn == True:
             start = False
 
         if start:
 
             if actionQueue:
                 pass
-            elif frontDist <= 70 and canTurn:
+            elif frontDist <= 80 and canTurn:
 
                 canTurn = False
 

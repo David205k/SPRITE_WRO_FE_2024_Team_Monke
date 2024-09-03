@@ -90,7 +90,7 @@ class compass:
         
         return corrected_x, corrected_y, corrected_z
 
-    def calibrate(self, signal=True):
+    def setHome(self, signal=True):
         if signal == True:
 
             x_offset, y_offset, z_offset = -18.5, -119.0, 0

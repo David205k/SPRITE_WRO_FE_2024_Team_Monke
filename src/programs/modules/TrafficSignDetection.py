@@ -5,12 +5,11 @@ import numpy as np  # Add this line to import NumPy
 
 class TrafficSign:
 
-    minWidth = 100
-    minHeight = 200
-
-    def __init__(self, frame, boxColor, lower, upper):
+    def __init__(self, frame, boxColor, lower, upper, minWidth=200, minHeight=300):
         self.boxColor = boxColor
         self.frame = frame
+        self.minWidth = minWidth
+        self.minHeight = minHeight
 
         # lowerLimit = cv2.cvtColor(np.uint8([[lowerLimit]]), cv2.COLOR_BGR2HSV)[0][0]
         # upperLimit = cv2.cvtColor(np.uint8([[upperLimit]]), cv2.COLOR_BGR2HSV)[0][0]
@@ -28,7 +27,7 @@ class TrafficSign:
             x, y, w, h = cv2.boundingRect(contour)
             area = w * h
 
-            if area > largest_area and w > 50 and h > 50:
+            if area > largest_area and w > 10 and h > 10:
                 largest_area = area
                 largest_bbox = (x, y, w, h)
 
@@ -42,9 +41,12 @@ class TrafficSign:
 
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
+
             area = w * h
 
-            if area > largest_area and w > TrafficSign.minWidth and h > TrafficSign.minHeight:
+            if area > largest_area and w > self.minWidth and h > self.minHeight:
+                self.x = x + w/2
+                self.y = y + h/2
                 largest_area = area
                 largest_bbox = (x, y, w, h)
 
