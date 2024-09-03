@@ -59,6 +59,14 @@ def compute_heading(x, y):
     
     return heading_deg
  
+def apply_calibration(raw_x, raw_y, raw_z, x_offset, y_offset, z_offset, x_scale, y_scale, z_scale):
+    # Apply the offset and scale to raw readings
+    corrected_x = (raw_x - x_offset) / x_scale
+    corrected_y = (raw_y - y_offset) / y_scale
+    corrected_z = (raw_z - z_offset) / z_scale
+    
+    return corrected_x, corrected_y, corrected_z
+
 startPos = 0 
 def main():
     setup()
@@ -67,9 +75,14 @@ def main():
 
     while True:
         try:
+            x_offset, y_offset, z_offset = -18.5, -119.0, 0
+            x_scale, y_scale, z_scale = 384.5, 392.0, 1
+
             x = read_raw_data(X_MSB)
             y = read_raw_data(Y_MSB)
             z = read_raw_data(Z_MSB)
+
+            x, y, z = apply_calibration(x, y, z, x_offset, y_offset, z_offset, x_scale, y_scale, z_scale)
             
             heading = compute_heading(x, y)
             

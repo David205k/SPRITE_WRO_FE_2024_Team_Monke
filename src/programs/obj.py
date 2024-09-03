@@ -48,7 +48,7 @@ except OSError:
         print("Connection successful!")
         break 
 
-servo = myservo.myServo(gpioPin=5, startPos=0, offset=-7, minAng=-70, maxAng=70)
+servo = myservo.myServo(gpioPin=5, startPos=0, offset=-13, minAng=-70, maxAng=70)
 car = Tb6612fng.motor(stby=37, pwmA=35, ai1=36, ai2=40) 
 LED = RGB.LED(red=8, blue=12, green=10)  
 
@@ -72,7 +72,7 @@ def getAngularDiff(intendedAngle, currentAng): # cw => -ve ccw => +ve
     return -angDiff
 
 # radius is in cm
-def turn(radius, headingDirection, direction, nextAct): 
+def turn(radius, headingDirection, direction, curAct, nextAct): 
 
     angTolerance = 5
 
@@ -87,10 +87,10 @@ def turn(radius, headingDirection, direction, nextAct):
         ang = math.degrees(math.asin(WHEELBASE/radius))
         if direction == "left":
             servo.write(ang)
-            return "turn left"
+            return curAct
         elif direction == "right":
             servo.write(-ang)
-            return "turn right"
+            return curAct
 
 def keepStraight(headingDirection):
 
@@ -167,11 +167,11 @@ def main():
 
         # Create TrafficSign objects
         green = Sign.TrafficSign(frame, (0, 255, 0), (40, 100, 100), (70, 255, 255), 8)
-        red = Sign.TrafficSign(frame, (0, 0, 255), (0, 200, 130), (5, 255, 255), 8)
+        red = Sign.TrafficSign(frame, (0, 0, 255), (0, 255, 27/255), (0, 69/255, 255), 8)
 
         # Draw bounding box for the largest detected object
-        frame, greenSign = green.printLargestBbox()
-        frame, redSign = red.printLargestBbox()
+        frame, greenSign = green.getBoundingBox()
+        frame, redSign = red.getBoundingBox()
 
         # Draw center line and distances
         cv2.line(frame, (frame.shape[1]//2, 0), (frame.shape[1]//2, frame.shape[0]), (0, 255, 255), thickness = 3) # Centre line
@@ -188,7 +188,7 @@ def main():
 
         #print(f"Front: {frontDist} But1: {GPIO.input(startBut1)}  But2: {GPIO.input(startBut2)} compass: {compassDirection} headingDirection: {headingDirection}")
 
-        if GPIO.input(startBut1): # start the program
+        if GPIO.input(startBut1) == 9: # start the program
             start = True
 
             # reset variables
@@ -234,7 +234,7 @@ def main():
                 LED.rgb(0,0,255) # LED blue
 
 
-            if frontDist >= 200: # reset variable
+            if frontDist >= 130: # reset variable
                 canTurn = True
 
             if noOfCornerTurns == 4*TOTALROUNDS + turnReduction and frontDist >= 150 and frontDist <= 160: # stop when finished
