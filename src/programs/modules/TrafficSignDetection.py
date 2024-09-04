@@ -34,4 +34,7 @@ class TrafficSign:
             cv2.rectangle(self.frame, (x, y), (x + w, y + h), self.bgr, 5)
 
         return self.frame, largest_bbox
-    
+
+# Release the capture and close any OpenCV windows
+cap.release()
+cv2.destroyAllWindows()

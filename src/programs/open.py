@@ -20,20 +20,17 @@ TOTALROUNDS = 3
 compassDirection = 0    # headings from the compass module
 drivingDirection = "CW" # round driving direction
 
-# initialise components  
-try: 
-    compass = HMC5883L.compass(addr=0x1E)
-except OSError:
+# initialise components 
+while True: 
 
-    while True:
-
+    try: 
+        compass = HMC5883L.compass(addr=0x1E)
+    except OSError:
         print("Trying to connect to compass...")
-        try:
-            compass = HMC5883L.compass(addr=0x1E)
-        except OSError:
-            continue 
-        print("Connection successful!")
-        break 
+        continue 
+
+    print("Connection with compass successful!")
+    break 
 
 servo = myservo.myServo(gpioPin=5, startPos=0, offset=-7, minAng=-70, maxAng=70)
 car = Tb6612fng.motor(stby=37, pwmA=35, ai1=36, ai2=40) 
@@ -115,23 +112,24 @@ def main():
     noOfTurns = 0
     headingDirection = 0
 
+    steps = []
+    curStep = 0
+
     while True:
 
         # get US distances in cm
         frontDist, leftDist, rightDist = round(us4.distance*100), round(us2.distance*100), round(us3.distance*100)
 
-        # get compass direction
-        try:
-            compassDirection = compass.getAngle()
-        except OSError:
-            while True:
+        while True:
+            # get compass direction
+            try:
+                compassDirection = compass.getAngle()
+            except OSError:
                 print("Trying to connect to compass...")
-                try:
-                    compassDirection = compass.getAngle()
-                except OSError:
-                    continue 
-                print("Connection successful!")
-                break 
+                continue
+
+            print("Connection with compass successful!")
+            break 
 
         if headingDirection < 0:
             headingDirection += 360
@@ -152,7 +150,7 @@ def main():
             action = None
 
             LED.rgb(255,255,255)
-            time.sleep(0.5)
+            time.sleep(0.5)      
         
         if start:
 
@@ -175,6 +173,10 @@ def main():
 
                 noOfTurns += 1
                 LED.rgb(0,0,255) # LED blue
+            elif leftDist <= 20:
+                steps = ["right avoid", "left recover"]
+                curStep = 0
+
 
             if frontDist >= 200: # reset variable
                 canTurn = True
