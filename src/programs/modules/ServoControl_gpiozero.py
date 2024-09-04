@@ -23,6 +23,6 @@ class myServo:
 
     def write(self, angle):
 
-        angle = max(min(angle+self.offset, self.maxAng), self.minAng) # limit angle between -90 and 90
+        angle = -max(min(angle+self.offset, self.maxAng), self.minAng) # limit angle between -90 and 90
         self.servo.angle = round(angle)
     
