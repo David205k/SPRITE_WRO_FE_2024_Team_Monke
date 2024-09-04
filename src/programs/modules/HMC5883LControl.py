@@ -63,6 +63,8 @@ class compass:
 
     def getAngle(self):
 
+        # x_offset, y_offset, z_offset = -22.5, -132.0, 0
+        # x_scale, y_scale, z_scale = 446.5, 452.0, 1
         x_offset, y_offset, z_offset = -18.5, -119.0, 0
         x_scale, y_scale, z_scale = 384.5, 392.0, 1
 

@@ -7,6 +7,7 @@ sys.path.append('/home/monke/WRO FE 2024 (Repository)/src/programs/modules')
 import RPi.GPIO as GPIO # use RPi library for controlling GPIO pins
 import ServoControl_gpiozero as myservo
 from gpiozero.pins.pigpio import PiGPIOFactory
+import time
 
 GPIO.setwarnings(False) # turn off warnings for pins (if 1if pins were previously used and not released properly there will be warnings)
 GPIO.setmode(GPIO.BOARD) # pin name convention used is pin numbers on board
@@ -34,12 +35,12 @@ GPIO.output(ai2, GPIO.LOW)
 GPIO.output(stby, GPIO.HIGH) # turn on motor driver
 
 factory = PiGPIOFactory()
-servo = myservo.myServo(gpioPin=5, startPos=20, offset=0, minAng=-70, maxAng=70)
+servo = myservo.myServo(gpioPin=5, startPos=20, offset=-13, minAng=-70, maxAng=70)
+
 
 while True:
 
-
-    userInput = "f30"#input()
+    userInput = "f20"
     direction, speed = userInput[0], userInput[1:]
     servo.write(0) 
 
@@ -74,3 +75,8 @@ while True:
     elif direction == 'e': # exit program
         GPIO.cleanup() # must include at the end of the program to release the pins used
         break
+
+    time.sleep(7)
+    GPIO.output(ai1, GPIO.LOW)
+    GPIO.output(ai2, GPIO.LOW)
+    break
