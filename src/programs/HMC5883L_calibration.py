@@ -1,13 +1,17 @@
 import smbus2
 import time
 import csv
+import RPi.GPIO as GPIO # use RPi library for controlling GPIO pins
+
+GPIO.setwarnings(False) # turn off warnings for pins (if pins were previously used and not released properly there will be warnings)
+GPIO.setmode(GPIO.BOARD) # pin name convention used is pin numbers on board
 
 import modules.Tb6612fngControl as Tb6612fng
 import modules.ServoControl_gpiozero as myservo
 import modules.RGBLEDControl as RGB
 
 car = Tb6612fng.motor(stby=37, pwmA=35, ai1=36, ai2=40) 
-servo = myservo.myServo(gpioPin=5, startPos=0, offset=-15, minAng=-70, maxAng=70)
+servo = myservo.myServo(gpioPin=5, startPos=0, offset=-5, minAng=-70, maxAng=70)
 LED = RGB.LED(red=8, blue=12, green=10)  
 
 # Initialize I2C bus
@@ -83,16 +87,25 @@ def save_to_csv(x_readings, y_readings, z_readings, filename="calibration_data.c
     
     print(f"Calibration data saved to {filename}")
 
+startBut1 = 16
+startBut2 = 18
+GPIO.setup(startBut1,GPIO.IN)
+GPIO.setup(startBut2,GPIO.IN)
+
 # Main function
 def main():
     initialize_hmc5883l()
     
+    while not (GPIO.input(startBut1) and GPIO.input(startBut2)):
+        pass
+
+
     car.speed(40)
-    servo.write(50)
+    servo.write(40)
     LED.rgb(0,0,255)
 
     print("Gathering calibration data...")
-    x_readings, y_readings, z_readings = gather_calibration_data(samples=500)
+    x_readings, y_readings, z_readings = gather_calibration_data(samples=250)
 
     servo.write(0)
     car.speed(0)
@@ -100,10 +113,10 @@ def main():
     time.sleep(1)
 
     car.speed(40)
-    servo.write(-50)
+    servo.write(-40)
     LED.rgb(255,0,0)
     print("Gathering calibration data...")
-    x_readings2, y_readings2, z_readings2 = gather_calibration_data(samples=500)
+    x_readings2, y_readings2, z_readings2 = gather_calibration_data(samples=250)
     x_readings, y_readings, z_readings = x_readings+x_readings2, y_readings+y_readings2, z_readings+z_readings2
 
     car.speed(0)

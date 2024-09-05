@@ -47,7 +47,8 @@ car = Tb6612fng.motor(stby=37, pwmA=35, ai1=36, ai2=40)
 LED = RGB.LED(red=8, blue=12, green=10)  
 
 us2 = DistanceSensor(echo=27, trigger=22, max_distance=3, pin_factory=factory) # pins are gpio pins
-us3 = DistanceSensor(echo=10, trigger=9, max_distance=3, pin_factory=factory) # pins are gpio pins
+# us3 = DistanceSensor(echo=10, trigger=9, max_distance=3, pin_factory=factory) # pins are gpio pins
+us3 = DistanceSensor(echo=7, trigger=8, max_distance=3, pin_factory=factory) # pins are gpio pins
 us4 = DistanceSensor(echo=6, trigger=13, max_distance=3, pin_factory=factory) # pins are gpio pins
 
 # two pins are connected to the start button as safeguard
@@ -103,7 +104,7 @@ def keepStraight():
 
     error = getAngularDiff(headingDirection, compassDirection)
 
-    Kp =  0.5
+    Kp =  1
     P = error   
 
     return P*Kp
@@ -215,9 +216,9 @@ def executeAction(action):
                 TurnHeadingDirection = headingDirection - 10
             else:
                 TurnHeadingDirection = headingDirection + 10
-            completed = turn(15, direction, TurnHeadingDirection, tolerance=10)
+            completed = turn(20, direction, TurnHeadingDirection, tolerance=10)
 
-            car.speed(15)
+            car.speed(40)
 
         case "avoid_right":
     
@@ -225,11 +226,13 @@ def executeAction(action):
 
             completed = turn(20, "right", heading=int(action[0].split()[1]), tolerance=10)
 
+            car.speed(30)
+
         case "recover_left":
 
             LED.rgb(255,255,0) # yellow light
 
-            completed = turn(20, "left", heading=headingDirection, tolerance=5)
+            completed = turn(25, "left", heading=headingDirection+5, tolerance=5)
             car.speed(30)
             
         case "avoid_left":
@@ -238,16 +241,18 @@ def executeAction(action):
 
             completed = turn(20, "left", heading=int(action[0].split()[1]), tolerance=10)
 
+            car.speed(30)
+
         case "recover_right":
 
             LED.rgb(255,255,0) # yellow light
 
-            completed = turn(20, "right", heading=headingDirection, tolerance=5)
+            completed = turn(25, "right", heading=headingDirection-5, tolerance=5)
             car.speed(30)
             
         case "run":
             LED.rgb(0,255,0) # green light
-            car.speed(30)
+            car.speed(770)
             servoAng = keepStraight()
             servo.write(servoAng)
             completed = True
@@ -304,14 +309,14 @@ def main():
 
         
         # stop the robot when 3 rounds completed
-        if noOfTurns == 4 * TOTALROUNDS and startFront - 8 <= frontDist <= startFront + 8 and canTurn == True:
+        if noOfTurns == 4 * TOTALROUNDS and startFront - 15 <= frontDist <= startFront + 8 and canTurn == True:
             start = False
 
         if start:
 
             if actionQueue:
                 pass
-            elif frontDist <= 80 and canTurn and ((leftDist >= 60 and drivingDirection == "ACW") or (rightDist >= 60 and drivingDirection == "CW")): #
+            elif frontDist <= 80 and canTurn: #
 
                 canTurn = False
 
@@ -327,11 +332,11 @@ def main():
 
                 actionQueue = deque(["corner_turn", "run"])
 
-            elif actualLeft <= 15:
+            elif leftDist <= 15:
 
                 actionQueue = deque([f"avoid_right {headingDirection+30}", "recover_left"])
 
-            elif actualRight <= 15:
+            elif rightDist <= 15:
 
                 actionQueue = deque([f"avoid_left {headingDirection-30}", "recover_right"])
 

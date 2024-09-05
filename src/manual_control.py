@@ -6,11 +6,12 @@ from pynput import keyboard
 
 # modules for controlling components
 import modules.Tb6612fngControl as Tb6612fng
-import modules.PwmControl as PwmControlwwaadaaa
+import modules.PwmControl as PwmControl
 import modules.RGBLEDControl as RGB
 import modules.HMC5883LControl as HMC5883L
 from gpiozero import DistanceSensor
 import modules.ServoControl_gpiozero as myservo
+
 
 # modules for camera vision 
 import cv2
@@ -26,7 +27,6 @@ WHEELBASE = 12      # vehicle wheelbase in cm
 TOTALROUNDS = 3
 compassDirection = 0
 
-# camera vision
 picam2 = Picamera2()
 picam2.preview_configuration.main.size=(1920,1000)
 picam2.preview_configuration.main.format = 'RGB888'
