@@ -198,10 +198,13 @@ def getRoundDirection(hsv_frame, frame):
         print("No blue or orange detected in the frame")
         return "unknown"
     
-
+doOnce = 0
+start_time = 0
 def executeAction(action):
 
     global headingDirection, drivingDirection
+    global doOnce, start_time
+
     TurnHeadingDirection = 0
 
     completed = None
@@ -216,43 +219,60 @@ def executeAction(action):
                 TurnHeadingDirection = headingDirection - 10
             else:
                 TurnHeadingDirection = headingDirection + 10
-            completed = turn(20, direction, TurnHeadingDirection, tolerance=10)
+            completed = turn(20, direction, TurnHeadingDirection, tolerance=15)
 
-            car.speed(40)
+            car.speed(50)
 
         case "avoid_right":
     
             LED.rgb(255,0,255) # purple light
 
-            completed = turn(20, "right", heading=int(action[0].split()[1]), tolerance=10)
+            completed = turn(25, "right", heading=int(action[0].split()[1]), tolerance=10)
 
-            car.speed(30)
+            car.speed(40)
 
         case "recover_left":
 
             LED.rgb(255,255,0) # yellow light
 
             completed = turn(25, "left", heading=headingDirection+5, tolerance=5)
-            car.speed(30)
+            car.speed(40)
             
         case "avoid_left":
     
             LED.rgb(255,0,255) # purple light
 
-            completed = turn(20, "left", heading=int(action[0].split()[1]), tolerance=10)
+            completed = turn(25, "left", heading=int(action[0].split()[1]), tolerance=10)
 
-            car.speed(30)
+            car.speed(40)
 
         case "recover_right":
 
             LED.rgb(255,255,0) # yellow light
 
             completed = turn(25, "right", heading=headingDirection-5, tolerance=5)
-            car.speed(30)
+            car.speed(40)
+            
+        case "reverse": # drive forward for certain amt of time
+
+            delay = float(action[0].split()[1])
+
+            if doOnce == 0:
+                doOnce = 1
+                start_time = time.time()
+
+            if time.time() - start_time >= delay:
+                completed = True
+                doOnce = 0
+            else: 
+                completed = False
+
+            car.speed(-20)   
+            servo.write(0)
             
         case "run":
             LED.rgb(0,255,0) # green light
-            car.speed(770)
+            car.speed(70)
             servoAng = keepStraight()
             servo.write(servoAng)
             completed = True
@@ -285,7 +305,7 @@ def main():
         blue_mask = cv2.inRange(hsv_frame, blue_lower, blue_upper)
         orange_mask = cv2.inRange(hsv_frame, orange_lower, orange_upper)
 
-        #cv2.imshow('preview', frame)
+        cv2.imshow('preview', frame)
 
         readSensors()
 
@@ -300,7 +320,7 @@ def main():
             startFront = frontDist
             canTurn = True
             actionQueue.clear()
-            compass.setHome()
+            compass.set_home()
 
             readSensors()   
 
@@ -309,14 +329,14 @@ def main():
 
         
         # stop the robot when 3 rounds completed
-        if noOfTurns == 4 * TOTALROUNDS and startFront - 15 <= frontDist <= startFront + 8 and canTurn == True:
+        if noOfTurns == 4 * TOTALROUNDS and startFront - 25 <= frontDist <= startFront + 5 and canTurn == True:
             start = False
 
         if start:
 
             if actionQueue:
                 pass
-            elif frontDist <= 80 and canTurn: #
+            elif frontDist <= 80 and canTurn: 
 
                 canTurn = False
 
@@ -332,13 +352,13 @@ def main():
 
                 actionQueue = deque(["corner_turn", "run"])
 
-            elif leftDist <= 15:
+            elif leftDist <= 20:
 
-                actionQueue = deque([f"avoid_right {headingDirection+30}", "recover_left"])
+                actionQueue = deque([f"avoid_right {headingDirection+45}", "recover_left"])
 
-            elif rightDist <= 15:
+            elif rightDist <= 20:
 
-                actionQueue = deque([f"avoid_left {headingDirection-30}", "recover_right"])
+                actionQueue = deque([f"avoid_left {headingDirection-45}", "recover_right"])
 
             else:
                 actionQueue = deque(["run"])
@@ -364,274 +384,5 @@ if __name__ == "__main__":
         picam2.stop()
         cv2.destroyAllWindows() 
         GPIO.cleanup()
-
-
-
-
-# import RPi.GPIO as GPIO # use RPi library for controlling GPIO pins
-# import time
-# import math
-# from gpiozero.pins.pigpio import PiGPIOFactory
-
-# # modules for controlling components
-# import modules.Tb6612fngControl as Tb6612fng
-# import modules.RGBLEDControl as RGB
-# import modules.HMC5883LControl as HMC5883L
-# import modules.ServoControl_gpiozero as myservo
-# from gpiozero import DistanceSensor
-
-# GPIO.setwarnings(False) # turn off warnings for pins (if pins were previously used and not released properly there will be warnings)
-# GPIO.setmode(GPIO.BOARD) # pin name convention used is pin numbers on board
-# factory = PiGPIOFactory()
-
-# #variables
-# WHEELBASE = 12          # vehicle wheelbase in cm
-# TOTALROUNDS = 3
-# compassDirection = 0    # headings from the compass module
-# drivingDirection = "CW" # round driving direction
-
-# # initialise components  
-# try: 
-#     compass = HMC5883L.compass(addr=0x1E)
-# except OSError:
-
-#     while True:
-
-#         print("Trying to connect to compass...")
-#         try:
-#             compass = HMC5883L.compass(addr=0x1E)
-#         except OSError:
-#             continue 
-#         print("Connection successful!")
-#         break 
-
-# servo = myservo.myServo(gpioPin=5, startPos=0, offset=-13, minAng=-70, maxAng=70)
-# car = Tb6612fng.motor(stby=37, pwmA=35, ai1=36, ai2=40) 
-# LED = RGB.LED(red=8, blue=12, green=10)  
-
-# us2 = DistanceSensor(echo=27, trigger=22, max_distance=3, pin_factory=factory) # pins are gpio pins
-# us3 = DistanceSensor(echo=10, trigger=9, max_distance=3, pin_factory=factory) # pins are gpio pins
-# us4 = DistanceSensor(echo=6, trigger=13, max_distance=3, pin_factory=factory) # pins are gpio pins
-
-# startBut1 = 16
-# startBut2 = 18
-# GPIO.setup(startBut1,GPIO.IN)
-# GPIO.setup(startBut2,GPIO.IN)
-
-# def getAngularDiff(intendedAngle, currentAng): # cw => -ve ccw => +ve 
-
-#     angDiff = intendedAngle - currentAng
-
-#     if angDiff > 180:
-#         angDiff -= 360
-#     elif angDiff < -180:
-#         angDiff += 360
-#     return -angDiff
-
-# # radius is in cm
-# def turn(radius, headingDirection, direction, curAct, nextAct): 
-
-#     angTolerance = 7
-
-#     angleDiff = getAngularDiff(headingDirection, compassDirection)
-
-#     if -angTolerance <= angleDiff <= angTolerance:
-#         return nextAct
-#     else:
-#         if radius < WHEELBASE:
-#             radius = WHEELBASE
-
-#         ang = math.degrees(math.asin(WHEELBASE/radius))
-#         if direction == "left":
-#             servo.write(ang)
-#             return curAct
-#         elif direction == "right":
-#             servo.write(-ang)
-#             return curAct
-
-# def keepStraight(headingDirection):
-
-#     global compassDirection
-
-#     error = getAngularDiff(headingDirection, compassDirection)
-
-#     Kp =  0.5
-#     P = error   
-
-#     return P*Kp
-
-# def keepInMiddle(headingDirection, leftDist, rightDist, setDist):
-
-#     global compassDirection
-
-#     ang = math.radians(getAngularDiff(compassDirection, headingDirection))
-#     error = round(leftDist*math.cos(ang) - rightDist*math.cos(ang)) + setDist
-
-#     Kp = 1
-
-#     P = error 
-
-#     return P*Kp 
-
-# def main():
-
-#     global drivingDirection
-#     global compassDirection
-#     global TOTALROUNDS
-
-#     action = None
-#     canTurn = True
-#     start = False
-#     noOfTurns = 0
-#     headingDirection = 0
-#     ignore = False
-#     turnDist = 0
-
-#     initialFront = initialLeft = initialRight = None
-
-#     while True:
-
-#         if headingDirection < 0:
-#             headingDirection += 360
-#         elif headingDirection > 360:
-#             headingDirection -= 360
-
-#         # get US distances in cm
-#         frontDist, leftDist, rightDist = round(us4.distance*100), round(us2.distance*100), round(us3.distance*100)
-
-#         #print(f"Front: {frontDist} But1: {GPIO.input(startBut1)}  But2: {GPIO.input(startBut2)} compass: {compassDirection} headingDirection: {headingDirection}")
-#         if GPIO.input(startBut1) and GPIO.input(startBut2): # start the program
-#             start = True
-
-#             # reset variables
-#             headingDirection = 0
-#             canTurn = True
-#             noOfTurns = 0
-#             action = None
-#             ignore = False
-
-#             initialFront = frontDist
-#             initialLeft = leftDist
-#             initialRight = rightDist
-
-#             LED.rgb(255,255,255)
-#             time.sleep(0.5)
-        
-#             compass.calibrate(True) # set direction value to 0 when button pressed
-#             doOnce = 0
-
-#         if start:
-
-#             # get compass direction
-#             try:
-#                 compassDirection = compass.getAngle()
-#             except OSError:
-#                 while True:
-#                     print("Trying to connect to compass...")
-#                     try:
-#                         compassDirection = compass.getAngle()
-#                     except OSError:
-#                         continue 
-#                     print("Connection successful!")
-#                     break 
-
-#             ang = math.radians(getAngularDiff(compassDirection, headingDirection))
-#             actualLeft = abs(leftDist*math.cos(ang))
-#             actualRight = abs(rightDist*math.cos(ang))
-
-#             #print(f"actualLeft: {actualLeft}, compassDirection: {compassDirection}, headingDirection: {headingDirection}")
-        
-#             if frontDist <= 70 and canTurn:
-
-#                 canTurn = False
-
-#                 if noOfTurns == 0: # determine driving direction
-#                     if leftDist <= rightDist:
-#                         drivingDirection = "CW"
-#                     elif leftDist > rightDist: 
-#                         drivingDirection = "ACW"
-                
-#                 if drivingDirection == "CW":
-#                     action = "corner right"
-#                     headingDirection += 90
-#                 else:
-#                     action = "corner left"
-#                     headingDirection -= 90
-
-#                 noOfTurns += 1
-#             # elif 0<= actualLeft <= 20 and leftDist <= 60 and frontDist >= 100:
-#             #     print("turning back")
-#             #     direc = headingDirection + 45
-#             #     action = "avoid right"
-#             #     ignore = True
-#             #     turnDist = actualLeft
-#             # elif 0<= actualRight <= 20 and rightDist <= 60 and frontDist >= 50 and action != "corner right" and action != "corner left":
-#             #     print("turning back")
-#             #     direc = headingDirection - 45
-#             #     action = "avoid left"
-#             #     ignore = True
-#             #     turnDist = actualRight
-
-#             if frontDist >= 130: # reset variable
-#                 canTurn = True
-
-#             if noOfTurns == 4*TOTALROUNDS and initialFront-10 <= frontDist <= initialFront+8: # stop when finished
-#                 start = False
-
-#             print(f"heading: {compass.heading} startPos: {compass.startPos} compass: {compassDirection} actualRight: {round(actualRight)} headingDirection: {headingDirection} front: {frontDist} left: {leftDist} right: {rightDist} angle:  noOfTurns: {noOfTurns} actualLeft: {actualLeft} action: {action}")
-
-#             match action:
-
-#                 case "corner right":
-#                     action = turn(20, headingDirection, "right", curAct=action, nextAct=None)
-#                     LED.rgb(0, 0, 255) # LED blue
-
-#                 case "corner left":
-#                     action = turn(20, headingDirection, "left", curAct=action, nextAct=None)
-#                     LED.rgb(0, 0, 255) # LED blue
-
-#                 case "avoid right":
-#                     action = turn(15, direc, "right", curAct=action, nextAct="recover left")
-#                     LED.rgb(255, 0, 255) # LED purple 
-#                     car.speed(20)
-
-#                     action = turn(15, headingDirection, "left", curAct=action, nextAct=None)
-#                     action = turn(15, headingDirection, "left", curAct=action, nextAct=None)
-#                     LED.rgb(255, 180, 155) # LED purple 
-#                     car.speed(15)
-
-#                     if action == None:
-#                         ignore = False
-
-#                 case "avoid left":
-#                     action = turn(15, direc, "left", curAct=action, nextAct="recover right")
-#                     LED.rgb(255, 0, 255) # LED purple 
-#                     car.speed(20)
-
-#                 case "recover right":
-#                     action = turn(15, headingDirection, "right", curAct=action, nextAct=None)
-#                     LED.rgb(255, 180, 155) # LED white
-#                     car.speed(15)
-
-#                     if action == None:
-#                         ignore = False
-
-#                 case _:  
-
-#                     LED.rgb(0,255,0)
-#                     angle = keepStraight(headingDirection)
-#                     servo.write(angle)
-#                     car.speed(40)
-#         else:
-#             # reset vehicle components
-#             servo.write(0)
-#             car.speed(0)
-#             LED.off()
-
-# if __name__ == "__main__":
-#     try:
-#         main()
-#     except KeyboardInterrupt:
-#         GPIO.cleanup()
 
 

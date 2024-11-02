@@ -50,7 +50,7 @@ car = Tb6612fng.motor(stby=37, pwmA=35, ai1=36, ai2=40)
 LED = RGB.LED(red=8, blue=12, green=10)  
 
 us2 = DistanceSensor(echo=27, trigger=22, max_distance=3, pin_factory=factory) # pins are gpio pins
-us3 = DistanceSensor(echo=10, trigger=9, max_distance=3, pin_factory=factory) # pins are gpio pins
+us3 = DistanceSensor(echo=7, trigger=8, max_distance=3, pin_factory=factory) # pins are gpio pins
 us4 = DistanceSensor(echo=6, trigger=13, max_distance=3, pin_factory=factory) # pins are gpio pins
 
 # two pins are connected to the start button as safeguard
@@ -64,9 +64,9 @@ blue_lower, blue_upper = np.array([80, 130, 50]), np.array([140, 180, 90])
 orange_lower, orange_upper = np.array([4, 100, 80]), np.array([20, 200, 150])
 
 # traffic sign hsv values
-green_lower, green_upper = (30, 100, 70), (100, 255, 200) 
+green_lower, green_upper = (30, 100, 30), (100, 255, 210) 
 red1_lower, red1_upper = (0, 210, 60), (4, 255, 255)
-red2_lower, red2_upper = (170, 210, 60), (179, 255, 255)
+red2_lower, red2_upper = (170, 210, 40), (179, 255, 255)
 
 picam2 = Picamera2()
 picam2.preview_configuration.main.size=(1920,1000)
@@ -208,7 +208,11 @@ def executeAction(action):
             turnRadius = int(action[0].split()[1])
             direction = "right" if drivingDirection == "CW" else "left"
 
-            completed = turn(turnRadius, direction, headingDirection, tolerance=10)
+            if drivingDirection == "CW":
+                TurnHeadingDirection = headingDirection - 10
+            else:
+                TurnHeadingDirection = headingDirection + 10
+            completed = turn(20, direction, TurnHeadingDirection, tolerance=10)
 
             car.speed(30)
 
@@ -231,7 +235,7 @@ def executeAction(action):
 
         #     completed = turn(20, "left", heading=int(action[0].split()[1]), tolerance=10)
 
-        # case "recover_right":
+        # case "rop {0.5}", f"reverse {7 * 5/100}"])#, f"travel {0.4}", f"avoid_left {headingDirection-45}", "recover_right"])ecover_right":
 
         #     LED.rgb(255,255,0) # yellow light
 
@@ -240,24 +244,24 @@ def executeAction(action):
 
         case "avoid_obs_right": # red
 
-            completed = turn(15, "right", heading=int(action[0].split()[1]), tolerance=10)
+            completed = turn(15, "right", heading=int(action[0].split()[1]), tolerance=15)
             car.speed(20)
 
         case "recover_obs_left": # red
 
-            completed = turn(15, "left", heading=headingDirection, tolerance=10)
+            completed = turn(15, "left", heading=headingDirection+10, tolerance=15)
             car.speed(15)
 
         case "avoid_obs_left": # green
 
-            completed = turn(15, "left", heading=int(action[0].split()[1]), tolerance=10)
+            completed = turn(15, "left", heading=int(action[0].split()[1])-10, tolerance=15)
             car.speed(20)
 
         case "recover_obs_right": # green
 
             LED.rgb(0, 100, 0) 
 
-            completed = turn(15, "right", heading=headingDirection, tolerance=10)
+            completed = turn(15, "right", heading=headingDirection-10, tolerance=15)
             car.speed(15)
 
         case "u_turn": # for last red sign
@@ -268,7 +272,7 @@ def executeAction(action):
 
             turnRadius = int(action[0].split()[1])
 
-            completed = turn(turnRadius, "left", heading=headingDirection, tolerance=5)
+            completed = turn(turnRadius, "left", heading=headingDirection, tolerance=10)
             car.speed(20)
 
         case "travel": # drive forward for certain amt of time
@@ -288,6 +292,23 @@ def executeAction(action):
             car.speed(20)   
             servo.write(0)
  
+        case "reverse": # drive forward for certain amt of time
+
+            delay = float(action[0].split()[1])
+
+            if doOnce == 0:
+                doOnce = 1
+                start_time = time.time()
+
+            if time.time() - start_time >= delay:
+                completed = True
+                doOnce = 0
+            else: 
+                completed = False
+
+            car.speed(-20)   
+            servo.write(0)
+
         case "stop": #stop for certain amount of time
 
             delay = float(action[0].split()[1])
@@ -336,13 +357,10 @@ def main():
         frame = cv2.flip(frame, 0) # Flip vertically
         frame = cv2.flip(frame, 1) # Flip horizontally
         
-        # resize frame
-        width = int(frame.shape[1] * 0.1)
-        height = int(frame.shape[0] * 0.1)
-        # frame = cv2.resize(frame, (width, height), interpolation=cv2.INTER_AREA)
 
         # Convert the frame to HSV color space
         hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
         redMask = cv2.inRange(hsv_frame, red1_lower, red1_upper)  # Create mask for the color
         greenMask = cv2.inRange(hsv_frame, green_lower, green_upper)  # Create mask for the color
 
@@ -354,11 +372,11 @@ def main():
         frame, redSign = red.printLargestBbox()
 
         # print center line and dist
-        cv2.line(frame, (frame.shape[1]//2, 0), (frame.shape[1]//2, frame.shape[0]), (0, 255, 255), thickness = 3) #centre line
-        cv2.putText(frame, "Dist: " + str(green.dist), (frame.shape[1] - 120, 440), cv2.FONT_HERSHEY_TRIPLEX, 1.0, (0, 255, 0), 1)
-        cv2.putText(frame, "Dist: " + str(red.dist), (20, 440), cv2.FONT_HERSHEY_TRIPLEX, 1.0, (0, 0, 255), 1)
+        # cv2.line(frame, (frame.shape[1]//2, 0), (frame.shape[1]//2, frame.shape[0]), (0, 255, 255), thickness = 3) #centre line
+        # cv2.putText(frame, "Dist: " + str(green.dist), (frame.shape[1] - 120, 440), cv2.FONT_HERSHEY_TRIPLEX, 1.0, (0, 255, 0), 1)
+        # cv2.putText(frame, "Dist: " + str(red.dist), (20, 440), cv2.FONT_HERSHEY_TRIPLEX, 1.0, (0, 0, 255), 1)
 
-        # cv2.imshow('camera', frame)
+        cv2.imshow('camera', frame)
         # cv2.imshow('red mask', redMask)
         # cv2.imshow('green mask', greenMask)
 
@@ -366,7 +384,7 @@ def main():
 
         readSensors()
 
-        # print(f"clrDetect: {red.detectClr()} actionQueue: {actionQueue} compassDirec: {compassDirection}, heading: {headingDirection} turns: {noOfTurns} drivingDirection: {drivingDirection} f: {frontDist}, l: {leftDist} r: {rightDist}")
+        print(f"actionQueue: {actionQueue} compassDirec: {compassDirection}, heading: {headingDirection} turns: {noOfTurns} drivingDirection: {drivingDirection} f: {frontDist}, l: {leftDist} r: {rightDist}")
 
         # start the robot when button pressed
         if GPIO.input(startBut1) and GPIO.input(startBut2):
@@ -383,7 +401,7 @@ def main():
             startRight  = rightDist
 
             actionQueue.clear()
-            compass.setHome()
+            compass.set_home()
 
             readSensors()   
 
@@ -430,7 +448,7 @@ def main():
 
                 # get travel time
                 if red.x > frame.shape[1]//2 + 10: # if red is on the right of robot
-                    travelTime = ((red.x - frame.shape[1]//2) / 1920) * 3.5#(7 * (50/100))
+                    travelTime = ((red.x - frame.shape[1]//2) / 1920) * 3 #(7 * (50/100)) 
                 else:
                     travelTime = 0
 
@@ -439,7 +457,7 @@ def main():
                 if noOfSignsEncountered == noOfSigns*TOTALROUNDS and noOfTurns > 8:
                     actionQueue = deque([f"avoid_obs_right {headingDirection+70}", f"travel {travelTime}", "recover_obs_left", "u_turn 30"])#, f"travel {0.4}", f"avoid_left {headingDirection-45}", "recover_right"])
                 else:
-                    actionQueue = deque([f"avoid_obs_right {headingDirection+70}", f"travel {travelTime}", "recover_obs_left", f"travel {7 * 22/100}", f"avoid_obs_left {headingDirection-70}", "recover_obs_right", f"stop {0.5}"])#, f"travel {0.4}", f"avoid_left {headingDirection-45}", "recover_right"])
+                    actionQueue = deque([f"avoid_obs_right {headingDirection+70}", f"travel {travelTime}", "recover_obs_left", f"travel {7 * 22/100}", f"avoid_obs_left {headingDirection-70}", "recover_obs_right", f"stop {0.5}", f"reverse {7 * 5/100}"])#, f"travel {0.4}", f"avoid_left {headingDirection-45}", "recover_right"])
 
                 if noOfTurns < 5:
                     noOfSigns += 1
@@ -451,13 +469,13 @@ def main():
                 LED.rgb(0, 100, 0)
 
                 if green.x < frame.shape[1]//2 - 10:  # if green is on the left of robot
-                    travelTime = ((frame.shape[1]//2-green.x)/ 1920) * 3.5 #(7 * (50/100))
+                    travelTime = ((frame.shape[1]//2-green.x)/ 1920) * 3.5 - (7 * 10/100) #(7 * (50/100))
                 else:
                     travelTime = 0
 
                 print(f"x: {green.x} travel error: {(frame.shape[1]//2)-green.x / 1920}  time: {travelTime} ")
                 
-                actionQueue = deque([f"avoid_obs_left {headingDirection-70}", f"travel {travelTime}", "recover_obs_right", f"travel {7 * 22/100}", f"avoid_obs_right {headingDirection+90}", "recover_obs_left", f"stop {0.5}"])#, f"travel {0.4}", f"avoid_left {headingDirection-45}", "recover_right"])
+                actionQueue = deque([f"avoid_obs_left {headingDirection-80}", f"travel {travelTime}", "recover_obs_right", f"travel {7 * 35/100}", f"avoid_obs_right {headingDirection+70}", "recover_obs_left", f"stop {0.5}", f"reverse {7 * 5/100}"])#, f"travel {0.4}", f"avoid_left {headingDirection-45}", "recover_right"])
 
                 if noOfTurns < 5:
                     noOfSigns += 1
@@ -477,8 +495,10 @@ def main():
             servo.write(0)
             LED.off()
 
-        if cv2.waitKey(1) == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord('q'): #break out of loop if 'q' is pressed
+            cv2.destroyAllWindows()
             break
+
 
 if __name__ == "__main__":
     try:

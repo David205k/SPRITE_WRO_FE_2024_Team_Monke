@@ -65,7 +65,3 @@ class TrafficSign:
             self.dist = int(self.F_LENGTH*self.ACT_HEIGHT/h)
 
         return self.frame, largest_bbox
-
-# Release the capture and close any OpenCV windows
-cap.release()
-cv2.destroyAllWindows()

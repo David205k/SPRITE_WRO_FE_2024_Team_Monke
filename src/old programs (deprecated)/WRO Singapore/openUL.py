@@ -149,7 +149,7 @@ def main():
             LED.rgb(255,255,255)
             time.sleep(0.5)
         
-            compass.setHome(True) # set direction value to 0 when button pressed
+            compass.set_home(True) # set direction value to 0 when button pressed
             doOnce = 0
 
         if start:

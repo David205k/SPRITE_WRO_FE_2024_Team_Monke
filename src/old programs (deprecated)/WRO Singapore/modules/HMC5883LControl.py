@@ -97,8 +97,10 @@ class compass:
             # x_offset, y_offset, z_offset = -18.5, -119.0, 0
             # x_scale, y_scale, z_scale = 384.5, 392.0, 1
 
-            x_offset, y_offset, z_offset = -41, -113.5, 0
-            x_scale, y_scale, z_scale = 621, 629.5, 1
+            # x_offset, y_offset, z_offset = -41, -113.5, 0
+            # x_scale, y_scale, z_scale = 621, 629.5, 1
+            x_offset, y_offset, z_offset = -66.5, -176, 0
+            x_scale, y_scale, z_scale = 535.5, 545.0, 1
 
             x = self.read_raw_data(self.X_MSB)
             y = self.read_raw_data(self.Y_MSB)

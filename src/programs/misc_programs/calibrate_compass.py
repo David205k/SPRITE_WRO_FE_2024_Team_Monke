@@ -1,18 +1,36 @@
+"""
+Run this file to get to calibrate the HMC5883L compass module. Corresponding offset values
+for each axes will be generated. Copy and replace the values in the "compass" class 
+in "HMC5883lControl.py".
+"""
+
+
 import smbus2
 import time
+from tqdm import tqdm
 import csv
 import RPi.GPIO as GPIO # use RPi library for controlling GPIO pins
+
+from monke_hat import Car
+from component_params import *
 
 GPIO.setwarnings(False) # turn off warnings for pins (if pins were previously used and not released properly there will be warnings)
 GPIO.setmode(GPIO.BOARD) # pin name convention used is pin numbers on board
 
-import modules.Tb6612fngControl as Tb6612fng
-import modules.ServoControl_gpiozero as myservo
-import modules.RGBLEDControl as RGB
-
-car = Tb6612fng.motor(stby=37, pwmA=35, ai1=36, ai2=40) 
-servo = myservo.myServo(gpioPin=5, startPos=0, offset=-5, minAng=-70, maxAng=70)
-LED = RGB.LED(red=8, blue=12, green=10)  
+# initialise car object
+car = Car.Car(
+    camera=camera,
+    wheelBase=wheelBase,
+    servo=servo,
+    us_front=us4,
+    us_left=us2,
+    us_right=us5,
+    us_spare1=us1,
+    us_spare2=us3,
+    rgb=rgb,
+    pb=pb,
+    mDrvr=mDrvr
+)
 
 # Initialize I2C bus
 bus = smbus2.SMBus(1)  # 1 indicates /dev/i2c-1
@@ -52,7 +70,7 @@ def gather_calibration_data(samples=100):
     y_readings = []
     z_readings = []
     
-    for _ in range(samples):
+    for _ in tqdm(range(samples)):
         x, y, z = read_magnetometer()
         x_readings.append(x)
         y_readings.append(y)
@@ -87,54 +105,55 @@ def save_to_csv(x_readings, y_readings, z_readings, filename="calibration_data.c
     
     print(f"Calibration data saved to {filename}")
 
-startBut1 = 16
-startBut2 = 18
-GPIO.setup(startBut1,GPIO.IN)
-GPIO.setup(startBut2,GPIO.IN)
-
 # Main function
 def main():
     initialize_hmc5883l()
     
-    while not (GPIO.input(startBut1) and GPIO.input(startBut2)):
-        pass
+    car.LED.off()
 
+    # Wait until button press to start 
+    print("Press button to start calibration.")
+    while not (car.read_button()):
+        continue
 
-    car.speed(40)
-    servo.write(40)
-    LED.rgb(0,0,255)
-
+    # Drive in clockwise direction
+    print("Starting calibration in clockwise direction.")
     print("Gathering calibration data...")
+    car.motor.speed(40)
+    car.servo.write(40)
+    car.LED.rgb(0,0,255) # blue LED
+
     x_readings, y_readings, z_readings = gather_calibration_data(samples=250)
 
-    servo.write(0)
-    car.speed(0)
-
+    # Stop
+    car.motor.speed(0)
+    car.servo.write(0)
     time.sleep(1)
 
-    car.speed(40)
-    servo.write(-40)
-    LED.rgb(255,0,0)
+    # Drive in anticlockwise direction
+    print("Starting calibration in anti clockwise direction.")
     print("Gathering calibration data...")
+    car.motor.speed(40)
+    car.servo.write(-40)
+    car.LED.rgb(255,0,0)
     x_readings2, y_readings2, z_readings2 = gather_calibration_data(samples=250)
     x_readings, y_readings, z_readings = x_readings+x_readings2, y_readings+y_readings2, z_readings+z_readings2
 
-    car.speed(0)
-    servo.write(0)
-    LED.off()
+    car.motor.speed(0)
+    car.servo.write(0)
+    car.LED.off(0)
 
+    print("Calibration complete.")
     print("Calculating offsets and scales...")
+
     x_offset, y_offset, z_offset, x_scale, y_scale, z_scale = calculate_offsets(x_readings, y_readings, z_readings)
     
-    print("X Offset:", x_offset)
-    print("Y Offset:", y_offset)
-    print("Z Offset:", z_offset)
-    print("X Scale:", x_scale)
-    print("Y Scale:", y_scale)
-    print("Z Scale:", z_scale)
-    
-    print("Storing calibration data in Excel...")
-    save_to_csv(x_readings, y_readings, z_readings)
+    print(f"X_OFFSET, Y_OFFSET, Z_OFFSET = {x_offset}, {y_offset}, {z_offset}")
+    print(f"X_SCALE, Y_SCALE, Z_SCALE = {x_scale}, {y_scale}, {z_scale}")
 
-if __name__ == "__main__":
+    # Uncomment to print to readings excel sheet
+    # print("Storing calibration data in Excel...")
+    # save_to_csv(x_readings, y_readings, z_readings)
+
+if __name__ == "__main__": 
     main()
