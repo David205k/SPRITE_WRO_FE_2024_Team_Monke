@@ -93,8 +93,17 @@ class compass:
 
         return math.degrees(heading_rad)
 
-    def get_angle(self, relative=True):
+    def get_angle(self, relative=True) -> int:
+        """
+        Get heading from HMC5883L compass. 0-360 degrees
 
+        Read the raw values from each axes, apply offset values and calculate heading.
+        Parameters
+        ----------
+        relative: bool
+            True: Return the heading of the compass relative to the home position.
+            False: Return the true heading
+        """
         # read compass angle (catch exception when compass is not connected properly)
         while True:
             try:

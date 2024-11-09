@@ -37,6 +37,9 @@ Record:
     Driving_direction: Clockwise or anticlockwise
 """
 
+import sys
+sys.path.append('/home/monke/WRO FE 2024 (Repository)/src/programs')
+
 from monke_hat import Car
 from component_params import *
 import cv2
@@ -45,7 +48,9 @@ import pygame
 import time
 import csv
 
-MAX_SPEED = 40 # maximum motor speed
+from picamera2 import Picamera2
+
+MAX_SPEED = 100 # maximum motor speed
 MAX_ANGLE = 45 # maximum motor angle
 
 # Initialize pygame and the joystick
@@ -119,7 +124,12 @@ _dist = 1
 driving_direction = 0 # 0 for cw, 1 for acw
 
 try:
+    car.start_cam()
     while True:
+
+        frame = car.get_frame()
+        cv2.imshow("Camera", frame)
+
         # Get events from the controller
         pygame.event.pump()
         car.read_sensors()
@@ -190,13 +200,16 @@ try:
             r, g, b = color
             car.LED.rgb(r,g,b)
 
-        if button_tri: #triangle
+
+        if cv2.waitKey(1) & 0xFF == ord('q'): # triangle or q on keyboard
+            cv2.destroyAllWindows()
             break 
         
         up_down_prev = dpad[1]
 
-        # car.print_sensor_vals()
-        print(f"Direction: {driving_direction}, Compass: {car.compass_direction}, Dist: {_dist}, Record: {record}")
+        car.print_sensor_vals()
+
+        # print(f"Direction: {driving_direction}, Compass: {car.compass_direction}, Dist: {_dist}, Record: {record}")
 
 
 
@@ -208,5 +221,6 @@ finally:
     car.LED.off()
     joystick.quit()
     pygame.quit()
-    cv2.destroyAllWindows() 
+    car.picam2.stop()
+    cv2.destroyAllWindows()     
     GPIO.cleanup()

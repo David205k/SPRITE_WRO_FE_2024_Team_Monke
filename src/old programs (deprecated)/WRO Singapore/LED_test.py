@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append('/home/monke/WRO FE 2024 (Repository)/src/programs/modules')
+sys.path.append("/home/monke/WRO FE 2024 (Repository)/src/old programs (deprecated)/WRO Singapore/modules/")
 
 import RGBLEDControl as RGB
 
@@ -17,9 +17,10 @@ while True:
 
     try:
         red, blue, green = userInput.split()
-        LED.rgb(int(red), int(green), int(blue))
     except ValueError:
         red, green, blue = 0, 0, 0
+    finally:
+        LED.rgb(int(red), int(green), int(blue))
 
     if userInput == 'q':
         GPIO.cleanup() # must include at the end of the program to release the pins used

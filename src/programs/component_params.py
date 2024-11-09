@@ -4,7 +4,7 @@ May consider using a yaml file instead.
 """
 
 camera={"shape": (640,480)}
-wheelBase = 0.12 # meters
+wheelBase = 12 # centimeters
 
 # gpio pin convention
 servo={"pin":5,"start":0, "offset":-5, "min":-70, "max":70}

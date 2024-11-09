@@ -30,7 +30,7 @@ import pygame
 import time
 import csv
 
-MAX_SPEED = 40 # maximum motor speed
+MAX_SPEED = 100 # maximum motor speed
 MAX_ANGLE = 45 # maximum motor angle
 
 # Initialize pygame and the joystick
