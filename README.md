@@ -119,7 +119,7 @@ This `README` will provide you with a quick overview of our process and resource
 | Printed Circuit Board | Custom PCB for mounting components | $5 |
 
 ## Overview of Robot
-
+!(v-photos/overview.jpeg)
 ### Chassis
 #### Steering
 Originally, our robot featured a tricycle steering design. Where the steering is done directly by the servo turning (like a bicycle). This allowed us to simplify the steering design and also achieve tighter turns. 
