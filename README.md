@@ -9,10 +9,11 @@
 ### Team Name: 		`Team Monke` 
 
 
-### Team Members: 	
-- **Lim Jun Hong David**
-- **Chong Qi Yuan**
-- **Sachin Ilangovan**
+### Team Members:
+
+- **Lim Jun Hong David <** [davidlimjunhong@gmail.com](mailto:davidlimjunhong@gmail.com) >
+- **Chong Qi Yuan <** [Qiyuan146@gmail.com](mailto:Qiyuan146@gmail.com) >
+- **Sachin Ilangovan <** [sachin5iconic@gmail.com](mailto:sachin5iconic@gmail.com) >
 
 ## Overview
 #### Introduction	
