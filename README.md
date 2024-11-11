@@ -139,7 +139,7 @@ For links to website for purchase of components, visit our either our /partslist
 ### WRO FE SG:
 ![image alt](https://github.com/David205k/SPRITE_WRO_FE_2024_Team_Monke/blob/5ae33baccd862dd960d4b3d5ee248f7b6f887f3d/v-photos/WRO%20FE%20SG/overview3.jpg?raw=true)
 ### WRO FE International Türkiye:
-![image alt](v-photos/International Türkiye/Overview.jpeg)
+![image alt](https://github.com/David205k/SPRITE_WRO_FE_2024_Team_Monke/blob/15453912992ec88534aefae9a395ba57c782a64a/v-photos/International%20Tu%CC%88rkiye/Overview.jpeg)
 
 ### Chassis
 #### Steering
