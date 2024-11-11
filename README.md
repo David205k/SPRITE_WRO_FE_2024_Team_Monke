@@ -119,6 +119,8 @@ This `README` will provide you with a quick overview of our process and resource
 | Ball Bearing | 6x13x5mm ball bearing | $3.41 |
 | Printed Circuit Board | Custom PCB for mounting components | $5 |
 
+For links to website for purchase of components, visit our either our /partslist or /engineering journal
+
 ## Overview of Robot
 ![image alt](https://github.com/David205k/SPRITE_WRO_FE_2024_Team_Monke/blob/main/v-photos/overview3.jpg?raw=true)
 ### Chassis
