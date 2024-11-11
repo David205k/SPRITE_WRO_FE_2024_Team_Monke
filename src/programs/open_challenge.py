@@ -13,7 +13,6 @@ from collections import deque
 from picamera2 import Picamera2
 import numpy as np
 import cv2
-from collections import deque
 
 GPIO.setwarnings(False) # turn off warnings for pins
 GPIO.setmode(GPIO.BOARD) # pin name convention used is pin numbers on board
@@ -22,7 +21,6 @@ factory = PiGPIOFactory()
 # initialise car object
 car = Car.Car(
     camera=camera,
-    wheelBase=wheelBase,
     servo=servo,
     us_front=us4,
     us_left=us2,
@@ -36,7 +34,7 @@ car = Car.Car(
 
 # global variables
 SPEED = 90
-MIN_WALL_DIST = 30 # cm
+MIN_WALL_DIST = 20 # cm
 ROBOT_WIDTH = 15 # cm
 ROBOT_LENGTH = 18.5 # cm
 
@@ -170,8 +168,6 @@ def main():
         car.read_sensors(True)
         # print(f"heading {car.heading}")
         ang_diff = car.compass_direction - car.heading
-        act_left =round(car.left_dist * cos(radians(ang_diff)))
-        act_right = round(car.right_dist * cos(radians(ang_diff)))
 
         # print(f"act left: {act_left} left: {car.left_dist} act right: {act_right} right: {car.right_dist}")
         car.compass.set_home(car.read_button())
