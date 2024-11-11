@@ -86,17 +86,31 @@ This `README` will provide you with a quick overview of our process and resource
   - `Official.png`
   - `Funny.png`
 
-- `v-photos`: 6 photos of vehicle from all 6 side
-  - `Top.png`
-  - `Right.png`
-  - `Left.png`
-  - `Back.png`
-  - `Front.png`
-  - `Bottom.png`
+- `v-photos`: 6 photos of vehicle from all 6 side + overview for both SG and Türkiye Robot Designs
+  - `WRO FE SG`  
+    - `Top.png`
+    - `Right.png`
+    - `Left.png`
+    - `Back.png`
+    - `Front.png`
+    - `Bottom.png`
+    - `overview3.png`
+  - `International Türkiye`
+    - `Top.jpeg`
+    - `Right.jpeg`
+    - `Left.jpeg`
+    - `Back.jpeg`
+    - `Front.jpeg`
+    - `Bottom.jpeg`
+    - `Overview.jpeg`
 
 - video: YouTube Video of vehicle demonstration in challenge
-  - `Open Challenge.md`
-  - `Obstacle Challenge.md`
+  - WRO FE SG
+    - `Open Challenge.md`
+    - `Obstacle Challenge.md`
+  - International Türkiye
+    - `Open Challenge.md`
+    - `Obstacle Challenge.md`
 
 - .gitignore: gitignore file
 - README.md: This file
@@ -122,7 +136,11 @@ This `README` will provide you with a quick overview of our process and resource
 For links to website for purchase of components, visit our either our /partslist or /engineering journal
 
 ## Overview of Robot
+### WRO FE SG:
 ![image alt](https://github.com/David205k/SPRITE_WRO_FE_2024_Team_Monke/blob/5ae33baccd862dd960d4b3d5ee248f7b6f887f3d/v-photos/WRO%20FE%20SG/overview3.jpg?raw=true)
+### WRO FE International Türkiye:
+![image alt](https://github.com/David205k/SPRITE_WRO_FE_2024_Team_Monke/blob/main/v-photos/International%20Türkiye/Overview.jpeg?raw=true)
+
 ### Chassis
 #### Steering
 Originally, our robot featured a tricycle steering design. Where the steering is done directly by the servo turning (like a bicycle). This allowed us to simplify the steering design and also achieve tighter turns. 
