@@ -122,7 +122,7 @@ This `README` will provide you with a quick overview of our process and resource
 For links to website for purchase of components, visit our either our /partslist or /engineering journal
 
 ## Overview of Robot
-![image alt](https://github.com/David205k/SPRITE_WRO_FE_2024_Team_Monke/blob/main/v-photos/overview3.jpg?raw=true)
+![image alt](https://github.com/David205k/SPRITE_WRO_FE_2024_Team_Monke/blob/5ae33baccd862dd960d4b3d5ee248f7b6f887f3d/v-photos/WRO%20FE%20SG/overview3.jpg?raw=true)
 ### Chassis
 #### Steering
 Originally, our robot featured a tricycle steering design. Where the steering is done directly by the servo turning (like a bicycle). This allowed us to simplify the steering design and also achieve tighter turns. 
