@@ -23,8 +23,8 @@ class compass:
     DECLINATION_ANGLE = 0.22
     # X_OFFSET, Y_OFFSET, Z_OFFSET = -18.5, -119.0, 0
     # X_SCALE, Y_SCALE, Z_SCALE = 384.5, 392.0, 1
-    X_OFFSET, Y_OFFSET, Z_OFFSET = -75.5, -135.5, -0.5
-    X_SCALE, Y_SCALE, Z_SCALE = 468.5, 481.5, 1.5
+    X_OFFSET, Y_OFFSET, Z_OFFSET = -28.0, -138.0, 0
+    X_SCALE, Y_SCALE, Z_SCALE = 511.0, 498.0, 1
     bus = None
 
     def __init__(self, addr=0x1E):
