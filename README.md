@@ -9,10 +9,11 @@
 ### Team Name: 		`Team Monke` 
 
 
-### Team Members: 	
-- **Lim Jun Hong David**
-- **Chong Qi Yuan**
-- **Sachin Ilangovan**
+### Team Members: (from left to right)
+
+- **Lim Jun Hong David <** [davidlimjunhong@gmail.com](mailto:davidlimjunhong@gmail.com) >
+- **Chong Qi Yuan <** [Qiyuan146@gmail.com](mailto:Qiyuan146@gmail.com) >
+- **Sachin Ilangovan <** [sachin5iconic@gmail.com](mailto:sachin5iconic@gmail.com) >
 
 ## Overview
 #### Introduction	
@@ -85,17 +86,31 @@ This `README` will provide you with a quick overview of our process and resource
   - `Official.png`
   - `Funny.png`
 
-- `v-photos`: 6 photos of vehicle from all 6 side
-  - `Top.png`
-  - `Right.png`
-  - `Left.png`
-  - `Back.png`
-  - `Front.png`
-  - `Bottom.png`
+- `v-photos`: 6 photos of vehicle from all 6 side + overview for both SG and Türkiye Robot Designs
+  - `WRO FE SG`  
+    - `Top.png`
+    - `Right.png`
+    - `Left.png`
+    - `Back.png`
+    - `Front.png`
+    - `Bottom.png`
+    - `overview3.png`
+  - `International Türkiye`
+    - `Top.jpeg`
+    - `Right.jpeg`
+    - `Left.jpeg`
+    - `Back.jpeg`
+    - `Front.jpeg`
+    - `Bottom.jpeg`
+    - `Overview.jpeg`
 
 - video: YouTube Video of vehicle demonstration in challenge
-  - `Open Challenge.md`
-  - `Obstacle Challenge.md`
+  - WRO FE SG
+    - `Open Challenge.md`
+    - `Obstacle Challenge.md`
+  - International Türkiye
+    - `Open Challenge.md`
+    - `Obstacle Challenge.md`
 
 - .gitignore: gitignore file
 - README.md: This file
@@ -105,32 +120,40 @@ This `README` will provide you with a quick overview of our process and resource
 |-----------------------|-------------------|-------------|
 | Raspberry Pi 4 Model B | Control unit      | $82.99 |
 | MG996R Servo Motor    | Steering actuator | $10.20 |
-| 12v 380rpm 1.4kgcm Brushed DC Motor | Main actuator | $19.64 |
+| 12v 380rpm 1.4kgcm Brushed DC Motor/ <br> DC 12V 1000RPM Gear motor | Main actuator | $19.64 |
 | Full Metal Differential Gear set| Differential gear | $10.68|
 | TB6612FNG Motor Driver | DC motor driver | $13.95 |
 | LM2596 3A Buck Module with Display | DC voltage step down regulator | $4.96 |
 | Raspberry Pi Camera Module 3 | Camera for Computer Vision | $6.99|
-| US-015 | High precision Ultrasonic Range Finder | $3.54 |
+| US-015/ <br> VL53L1X Time of Flight sensor| High precision Ultrasonic Range Finder <br> / Long range, High precision IR Range Finder| $3.54 |
 | HMC 5883L | Triple Axis compass | $12.80 |
-| Turnigy Lipo Pack 5000mAh 3S 25C W/XT-90| Battery | $32.58 |
+| Turnigy Lipo Pack 5000mAh 3S 25C W/XT-90/ <br> Turnigy Lipo pack 1300mAh 3S | Battery | $32.58 |
 | 80mm Plastic Wheels SPG30/SPG50 | Main Driving wheel | $1.78 |
 | Small Plastic Wheel | 34mm Steering Wheel | $2.00 |
 | Ball Bearing | 6x13x5mm ball bearing | $3.41 |
 | Printed Circuit Board | Custom PCB for mounting components | $5 |
 
+For links to website for purchase of components, visit our either our /partslist or /engineering journal
 
+## Overview of Robot
+### WRO FE SG:
+![image alt](https://github.com/David205k/SPRITE_WRO_FE_2024_Team_Monke/blob/5ae33baccd862dd960d4b3d5ee248f7b6f887f3d/v-photos/WRO%20FE%20SG/overview3.jpg?raw=true)
+### WRO FE International Türkiye:
+![image alt](https://github.com/David205k/SPRITE_WRO_FE_2024_Team_Monke/blob/15453912992ec88534aefae9a395ba57c782a64a/v-photos/International%20Tu%CC%88rkiye/Overview.jpeg)
 
-- MG996R Servo Motor
-- 12v 380rpm 1.4kgcm Brushed DC Motor
-- Full Metal Differential Gear Set
-- Raspberry Pi 4 Model B
-- High precision Ultrasonic Range Finder US-015
-- Raspberry Pi Camera Module 3
-- TB6612FNG Motor Driver
-- Ball Bearings 6x13x5 mm
-- 80mm Plastic Wheels
-- Small Plastic Wheels SPG330/SPG50 (80mm)
-- HMC5883L Module Triple Axis compass
-- Turnigy Lipo Pack 5000mAh 3S 25C W/XT-90
-- LM2596 3A Buck Module with Display
-- Custom designed PCB
+### Chassis
+#### Steering
+Originally, our robot featured a tricycle steering design. Where the steering is done directly by the servo turning (like a bicycle). This allowed us to simplify the steering design and also achieve tighter turns. 
+However, we encountered some difficulties. Therefore we decided to swap to the ackerman steering for the internationals. 
+This mainly offered advantageous in steering robustness, control and stability. However, this came at the cost of a more complex mechanism and a larger turning radius. 
+#### Driving
+Our robot is using a standard differential gear drive system, where 1 DC motor powers both wheels via a differential gear. A differential gear is used to prevent skidding and offer more stability and control. 
+
+### Sense
+Computer Vision: Our robot uses a Raspberry Pi to perform OpenCV computer vision to enable detection and avoidance of the obstacles. 
+Distance Sensing: Our robot uses Time of Flight/Ultrasonic sensors to detect distances of walls, obstacles etc.
+Vehicle direction: Our robot uses a Magnetometer Compass to obtain the bearing of the robot to enable accurate turns. 
+By using this fleet of sensors, our robot is able to make informed decisions based on the information. 
+
+For a more comprehensive overview of our design, proceed to our engineering document at `doc/`. 
+
