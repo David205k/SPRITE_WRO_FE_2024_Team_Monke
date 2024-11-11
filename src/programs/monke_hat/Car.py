@@ -1,3 +1,6 @@
+import sys
+sys.path.append('/home/monke/WRO FE 2024 (Repository)/src/programs')
+
 import RPi.GPIO as GPIO # use RPi library for controlling GPIO pins
 from gpiozero.pins.pigpio import PiGPIOFactory
 
@@ -10,6 +13,7 @@ import monke_hat.RGBLEDControl as RGB
 import monke_hat.HMC5883LControl as HMC5883L
 import monke_hat.Tb6612fngControl as Tb6612fng
 import monke_hat.PID as PID
+from parameters import * 
 
 import cv2
 from picamera2 import Picamera2
@@ -33,7 +37,6 @@ class Car:
 
     def __init__(self,
                  camera: dict,
-                 wheelBase: float,
                  servo: dict,
                  us_front: dict,
                  us_left: dict,
@@ -46,7 +49,6 @@ class Car:
                  ):
 
         self._camera = camera
-        self._WHEELBASE = wheelBase
         self._servo = servo
         self._us_front = us_front
         self._us_left = us_left
@@ -79,11 +81,6 @@ class Car:
 
         # initialise ultrasonic sensors
         self.us_front = DistanceSensor(echo=us_front["echo"], trigger=us_front["trig"], max_distance=3, pin_factory=factory)
-        # self.us_left = DistanceSensor(echo=us_left["echo"], trigger=us_left["trig"], max_distance=3, pin_factory=factory)
-        # self.us_right = DistanceSensor(echo=us_right["echo"], trigger=us_right["trig"], max_distance=3, pin_factory=factory)
-        # self.us_spare1 = DistanceSensor(echo=us_spare1["echo"], trigger=us_spare1["trig"], max_distance=3, pin_factory=factory)
-        # self.us_spare2 = DistanceSensor(echo=us_spare2["echo"], trigger=us_spare2["trig"], max_distance=3, pin_factory=factory)  
-
         self.tof_right = PiicoDev_VL53L1X( bus=0, sda=2, scl=3, freq = 400_000)
         self.tof_left = PiicoDev_VL53L1X( bus=1, sda=27, scl=28, freq = 400_000 )
 
@@ -91,9 +88,11 @@ class Car:
         self.front_dist = 0
         self.left_dist = 0
         self.right_dist = 0
+        self.but_press = False
 
         self.heading = 0
         self.driving_direction = "CW"
+
         self.PID_controller = None
 
     def straight(self, speed: float):
@@ -124,9 +123,9 @@ class Car:
             +ve => ACW
             -ve => CW
         """
-        if -self._WHEELBASE <= radius <= self._WHEELBASE:
-            radius = self._WHEELBASE * radius/abs(radius)
-        ang = round(degrees(asin(self._WHEELBASE/radius)))
+        if -WHEELBASE <= radius <= WHEELBASE:
+            radius = WHEELBASE * radius/abs(radius)
+        ang = round(degrees(asin(WHEELBASE/radius)))
         self.servo.write(ang)
     
     i = 0
@@ -150,7 +149,13 @@ class Car:
             self.PID_controller = PID.PID(kp, ki, kd)
             self.i = 1
 
-        angle_adj = self.PID_controller.PID_control(self.compass_direction, self.heading)
+        ang_diff = self.compass_direction - self.heading
+        if ang_diff < -180:
+            ang_diff += 360
+        elif ang_diff > 180:
+            ang_diff -= 360
+
+        angle_adj = self.PID_controller.PID_control(ang_diff)
         # self.servo.write(angle_adj)
 
         if verbose:
@@ -194,7 +199,8 @@ class Car:
         self.frame = cv2.resize(self.frame, (self._camera["shape"]))
 
         return self.frame
-    
+
+
     def read_button(self, verbose: bool = False) -> bool:
         """
         Reads button press and returns its status.
@@ -211,16 +217,16 @@ class Car:
             print("Button was pressed") 
 
         if (GPIO.input(self._pb[1]) and GPIO.input(self._pb[2])):
-            return True
+            self.but_press = True
         else:
-            return False
-    
+            self.but_press = False
+        return self.but_press
 
     def read_sensors(self, verbose: bool = False):
         """
         Read sensors and store their values in their respective instance variables
 
-        Reads ultrasonic sensors and HMC5883L compass module
+        Reads ultrasonic sensors and HMC5883L compass module. Values of sensors are returned
 
         Parameters
         ----------
@@ -239,9 +245,13 @@ class Car:
         return self.front_dist, self.left_dist, self.right_dist, self.compass_direction
         
     def print_sensor_vals(self):
-        """
-        Print sensor readings to console
-        """
-        self.read_sensors()
+        """Print sensor readings to console"""
 
+        self.read_sensors()
         print(f"Front: {self.front_dist} Left: {self.left_dist} Right: {self.right_dist} Compass: {self.compass_direction}")
+
+    def reset(self):
+        self.inactive()
+        self.compass.set_home()
+
+        self.heading = 0

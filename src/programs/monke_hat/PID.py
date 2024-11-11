@@ -29,7 +29,7 @@ class PID:
         self.prev_error = 0
         self.integral = 0
 
-    def PID_control(self, control_var: float, set_point: float) -> float:
+    def PID_control(self, error: float) -> float:
         """
         Returns an adjustment based on the error value given.
 
@@ -45,7 +45,7 @@ class PID:
 
         self.prev_error = self.error
         self.integral += self.error
-        self.error = control_var - set_point
+        self.error = error
 
         adjustment = self.error*self.kp + (self.error-self.prev_error)*self.kd + self.integral*self.ki
 
