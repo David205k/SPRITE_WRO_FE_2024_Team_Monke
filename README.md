@@ -9,7 +9,7 @@
 ### Team Name: 		`Team Monke` 
 
 
-### Team Members:
+### Team Members: (from left to right)
 
 - **Lim Jun Hong David <** [davidlimjunhong@gmail.com](mailto:davidlimjunhong@gmail.com) >
 - **Chong Qi Yuan <** [Qiyuan146@gmail.com](mailto:Qiyuan146@gmail.com) >
