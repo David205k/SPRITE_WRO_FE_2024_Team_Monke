@@ -1,7 +1,7 @@
-from monke_hat import Car
+from modules.monke_hat import Car
 from component_params import *
 from parameters import *
-from TrafficSign import Traffic_sign
+from modules.Traffic_sign.Traffic_sign import Traffic_sign
 
 from RPi import GPIO
 import threading

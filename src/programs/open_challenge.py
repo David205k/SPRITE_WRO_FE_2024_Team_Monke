@@ -2,7 +2,7 @@
 This program is to be run for the WRO Future Engineers Open Challenge.
 """
 
-from monke_hat import Car
+from modules.monke_hat import Car
 from component_params import *
 
 from math import *

@@ -1,7 +1,7 @@
-from monke_hat import Car
+from modules.monke_hat import Car
 from parameters import *
 from component_params import *
-from TrafficSign import Traffic_sign
+from modules.Traffic_sign.Traffic_sign import Traffic_sign
 
 from RPi import GPIO
 import threading
@@ -28,6 +28,7 @@ car = Car.Car(
 
 green_sign = Traffic_sign(GREEN_SIGN)
 red_sign = Traffic_sign(RED_SIGN)
+parking_lot = Traffic_sign(PARKING_LOT)
 
 # global variables
 SPEED = 20              # percentage out of 1000
@@ -164,15 +165,21 @@ def show_visuals():
         car.frame = green_sign.draw_bbox(car.frame, (0,255,0))
         text_pos = (50,camera["shape"][1] - 50)
         car.frame = cv2.putText(car.frame, f"({green_sign.map_x:.2f}, {green_sign.map_y:.2f})",
-                                text_pos, font, 1, (0,0,255), 1, line)
+                                text_pos, font, 1, (0,255,0), 1, line)
 
     # print red bbox and coordinates
-    if red_sign.x != -999:
-        car.frame = red_sign.draw_bbox(car.frame, (0,0,255))
-        text_pos = (camera["shape"][0] - 200,camera["shape"][1] - 50)
-        car.frame = cv2.putText(car.frame, f"({red_sign.map_x:.2f},{red_sign.map_y:.2f})",
-                                text_pos, font, 1, (0,0,255), 1, line)
+    # if red_sign.x != -999:
+    #     car.frame = red_sign.draw_bbox(car.frame, (0,0,255))
+    #     text_pos = (camera["shape"][0] - 250,camera["shape"][1] - 50)
+    #     car.frame = cv2.putText(car.frame, f"({red_sign.map_x:.2f},{red_sign.map_y:.2f})",
+    #                             text_pos, font, 1, (0,0,255), 1, line)
         
+    if parking_lot.x != -999:
+        car.frame = parking_lot.draw_bbox(car.frame, (255,51,255))
+        text_pos = (200,camera["shape"][1] - 50)
+        car.frame = cv2.putText(car.frame, f"({parking_lot.map_x:.2f},{parking_lot.map_y:.2f})",
+                                text_pos, font, 1, (255,51,255), 1, line)
+
     prev_time = cur_time
     cur_time = time.time()
     fps = 1 / (cur_time-prev_time)
@@ -180,6 +187,9 @@ def show_visuals():
                     (30,30), font, 1, (255,0,0), 1, line)
     
     cv2.imshow("Camera", car.frame)
+    cv2.imshow("Parking Lot", parking_lot.mask)
+    # cv2.imshow("Red", red_sign.mask)
+    # cv2.imshow("Green", green_sign.mask)
 
 def setup():
     car.start_cam()
@@ -198,8 +208,9 @@ def background_tasks():
 
             green_sign.detect_sign(frame=car.frame, min_pixel_h=20, min_pixel_w=20)
             red_sign.detect_sign(frame=car.frame, min_pixel_h=20, min_pixel_w=20)
+            parking_lot.detect_sign(frame=car.frame, min_pixel_h=20, min_pixel_w=20)
 
-            # show_visuals()
+            show_visuals()
 
             if cv2.waitKey(1) & 0xFF == ord('q'): #break out of loop if 'q' is pressed
                 cv2.destroyAllWindows()
