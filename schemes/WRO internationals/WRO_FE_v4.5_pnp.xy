@@ -1,0 +1,48 @@
+# Pick And Place List
+# Company=
+# Author=
+# eMail=
+#
+# Project=WRO_FE_v4.5
+# Date=23:30:45
+# CreatedBy=Fritzing 1.0.3b.2024-05-30.CD-1995-0-a7811ba0
+#
+#
+# Coordinates in mils, always center of component
+# Origin 0/0=Lower left corner of PCB
+# Rotation in degree (0-360, math. pos.)
+#
+RefDes,Description,Package,X,Y,Rotation,Side,Mount
+Description: resistance;capacitance;inductance;voltage;current;power;mpn;mn;
+SERVO,";;;;;;;;","THT",699.39,1933.82,0,Top,THT
+Via9,";;;;;;;;","",2079.5,334.867,0,Top,MANUAL
+HMC5883L,";;;;;;;;","",1275.22,1708.12,180,Top,MANUAL
+RPI,";;;;;;;;","THT",2529.39,1283.82,180,Top,THT
+Via5,";;;;;;;;","",2079.39,133.822,0,Top,MANUAL
+MAIN,";;;;;;;;","screwterminal-5mm 2 position",191.579,1417,90,Top,SMT
+MAIN,";;;;;;;;","THT",279.39,2433.82,0,Top,THT
+Via4,";;;;;;;;","",1978.53,433.322,0,Top,MANUAL
+U5,";;;;;;;;","THT",1929.39,733.818,90,Top,THT
+Via3,";;;;;;;;","",1978.53,533.367,0,Top,MANUAL
+TB6612FNG,";;;;;;;;","",1079.39,483.818,0,Top,MANUAL
+LED,";;;;0.030A;;;;","5 mm [THT]",1979.39,2570.13,-90,Top,THT
+START,";;;;;;;;","[THT]",351.432,2845.24,0,Top,THT
+M O/P,";;;;;;;;","screwterminal-5mm 2 position",191.201,330.06,90,Top,SMT
+SERVO,";;;;;;;;","THT",799.39,2433.82,0,Top,THT
+Via6,";;;;;;;;","",2779.39,2833.82,0,Top,MANUAL
+U1,";;;;;;;;","THT",1929.39,1933.82,90,Top,THT
+U2,";;;;;;;;","THT",1929.39,1633.82,90,Top,THT
+U4,";;;;;;;;","THT",1929.39,1033.82,90,Top,THT
+R1,"220;;;;;0.25W;;;","THT",2379.39,2633.82,180,Top,THT
+U3,";;;;;;;;","THT",1929.39,1333.82,90,Top,THT
+R2,"220;;;;;0.25W;;;","THT",2379.39,2533.82,180,Top,THT
+Via11,";;;;;;;;","",2179.75,632.967,0,Top,MANUAL
+I2C a,";;;;;;;;","THT",1329.39,1633.82,90,Top,THT
+Via8,";;;;;;;;","",1579.11,2232.16,0,Top,MANUAL
+SERVO,";;;;;;;;","screwterminal-5mm 2 position",180.013,1945.63,90,Top,SMT
+R3,"220;;;;;0.25W;;;","THT",2379.39,2433.82,180,Top,THT
+Via10,";;;;;;;;","",1979.93,634.322,0,Top,MANUAL
+R4,"1k;;;;;0.25W;;;","THT",779.39,2733.82,180,Top,THT
+I2C b,";;;;;;;;","THT",1329.39,1333.82,90,Top,THT
+MOTOR,";;;;;;;;","THT",1099.39,2433.82,0,Top,THT
+VM,";;;;;;;;","screwterminal-5mm 2 position",191.579,877.004,90,Top,SMT
