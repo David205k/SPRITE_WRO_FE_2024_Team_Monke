@@ -124,14 +124,14 @@ This `README` will provide you with a quick overview of our process and resource
 | Full Metal Differential Gear set| Differential gear | $10.68|
 | TB6612FNG Motor Driver | DC motor driver | $13.95 |
 | LM2596 3A Buck Module with Display | DC voltage step down regulator | $4.96 |
-| Raspberry Pi Camera Module 3 | Camera for Computer Vision | $6.99|
+| Raspberry Pi Camera Module 3 | Camera for Computer Vision | $46.61|
 | US-015/ <br> VL53L1X Time of Flight sensor| High precision Ultrasonic Range Finder <br> / Long range, High precision IR Range Finder| $3.54 |
-| HMC 5883L | Triple Axis compass | $12.80 |
+| HMC5883L | Triple Axis compass | $12.80 |
 | Turnigy Lipo Pack 5000mAh 3S 25C W/XT-90/ <br> Turnigy Lipo pack 1300mAh 3S | Battery | $32.58 |
 | 80mm Plastic Wheels SPG30/SPG50 | Main Driving wheel | $1.78 |
 | Small Plastic Wheel | 34mm Steering Wheel | $2.00 |
 | Ball Bearing | 6x13x5mm ball bearing | $3.41 |
-| Printed Circuit Board | Custom PCB for mounting components | $5 |
+| Printed Circuit Board | Custom PCB for mounting components | $8 |
 
 For links to website for purchase of components, visit our either our /partslist or /engineering journal
 
