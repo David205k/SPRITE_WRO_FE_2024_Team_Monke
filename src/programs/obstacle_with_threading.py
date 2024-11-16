@@ -72,21 +72,33 @@ def curve_to_point(radius:float, x:float, y:float):
 
     return theta, tan_dist
 
-def avoid_taffic_sign(traffic_sign:Traffic_sign, pass_on_side:str):
+def avoid_taffic_sign(sign:Traffic_sign, pass_on_side:str):
 
-    x_within_dist = {"left": traffic_sign.map_x <= CAR_WIDTH/2,
-                  "right": traffic_sign.map_x >= -CAR_WIDTH/2}
+    x_within_dist = {"left": sign.map_x <= CAR_WIDTH/2,
+                  "right": sign.map_x >= -CAR_WIDTH/2}
 
-    if (traffic_sign.have_sign and x_within_dist
-        and 35 <= traffic_sign.map_y <= 100):
+    if (sign.have_sign and x_within_dist
+        and 35 <= sign.map_y <= 100):
 
-        print(f"Avoiding {traffic_sign.colour} at {(traffic_sign.map_x,traffic_sign.map_y)}")
-        
+        print(f"Passing on {pass_on_side}. {sign.colour} at {sign.map_x:.2f},{sign.map_y:.2f}")
+        b,g,r = sign.bbox_colour
+        car.LED.rgb(r,g,b)
+
         buffer = 5
-        x = CAR_WIDTH/2 + traffic_sign.width/2 + buffer
-        y = traffic_sign.map_y
+        x = CAR_WIDTH/2 + sign.width/2 + buffer
+        y = sign.map_y
+        r = 16
 
-        print(f"Moving to {x,y}")
+        print(f"Moving to {(x,y)}")
+
+        curve_to_point(r, x, y)
+        
+        drive_dist(green_sign.width+5)
+        
+        # curve back to middle
+        arc(-16, confine_ang(car.heading+90), tol=5)
+        arc(16, confine_ang(car.heading-90), tol=5)
+
 
     
 
