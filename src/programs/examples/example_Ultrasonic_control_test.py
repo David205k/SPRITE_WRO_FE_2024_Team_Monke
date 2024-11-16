@@ -1,7 +1,7 @@
 import sys
 sys.path.append("/home/monke/WRO FE 2024 (Repository)/src/programs/modules/monke_hat")
 
-import Ultrasonic_control as Ultrasonic
+from monke_hat import Ultrasonic_control as Ultrasonic
 
 import subprocess
 

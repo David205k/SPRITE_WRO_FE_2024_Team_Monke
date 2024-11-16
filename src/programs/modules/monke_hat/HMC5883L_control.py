@@ -119,7 +119,7 @@ class compass:
 
         heading = round(self.compute_heading(x,y))
 
-        if relative == True: # get angle relative to start position
+        if relative: # get angle relative to start position
             if 360 >= heading >= self.startPos: 
                 angle = heading - self.startPos
             elif 0 <= heading < self.startPos:

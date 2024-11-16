@@ -1,4 +1,4 @@
-import Pwm_control as Pwm_control
+import modules.monke_hat.Pwm_control as Pwm_control
 
 class LED:
     """

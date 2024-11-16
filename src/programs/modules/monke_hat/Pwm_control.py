@@ -1,7 +1,7 @@
 import RPi.GPIO as GPIO # use RPi library for controlling GPIO pins
 
 GPIO.setwarnings(False) 
-GPIO.setmode(GPIO.BOARD) # pin name convention used is pin numbers on board
+# GPIO.setmode(GPIO.BOARD) # pin name convention used is pin numbers on board
 
 class pwm:
     """

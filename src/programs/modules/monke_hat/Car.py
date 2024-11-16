@@ -7,12 +7,13 @@ from gpiozero.pins.pigpio import PiGPIOFactory
 from gpiozero import DistanceSensor
 from PiicoDev_VL53L1X import PiicoDev_VL53L1X
 
-import monke_hat.Servo_control as MyServo
-import monke_hat.Pwm_control as PWM
-import monke_hat.RGB_LED_control as RGB
-import monke_hat.HMC5883L_control as HMC5883L
-import monke_hat.Tb6612fng_control as Tb6612fng
-import monke_hat.PID as PID
+import modules.monke_hat.Servo_control as MyServo
+import modules.monke_hat.Pwm_control as PWM
+import modules.monke_hat.RGB_LED_control as RGB
+# import modules.monke_hat.HMC5883L_control as HMC5883L
+import modules.monke_hat.LIS3MDL_control as LIS3MDL
+import modules.monke_hat.Tb6612fng_control as Tb6612fng
+import modules.monke_hat.PID as PID
 from parameters import * 
 
 import cv2
@@ -22,7 +23,7 @@ from math import *
 factory = PiGPIOFactory()
 
 GPIO.setwarnings(False) # turn off warnings for pins (if pins were previously used and not released properly there will be warnings)
-GPIO.setmode(GPIO.BOARD) # pin name convention used is pin numbers on board
+# GPIO.setmode(GPIO.BOARD) # pin name convention used is pin numbers on board
 
 class Car: 
     """
@@ -62,14 +63,16 @@ class Car:
         # initialise components  
         #---------------------------------------------------------------------------------------------
         # initialise compass 
-        while True:  # try until it connects
-            try:
-                self.compass = HMC5883L.compass()
-            except OSError:
-                print("Unable to connect to compass")
-                continue 
-            print("Connection to compass successful!")
-            break 
+        # while True:  # try until it connects
+        #     try:
+        #         self.compass = HMC5883L.compass()
+        #     except OSError:
+        #         print("Unable to connect to compass")
+        #         continue 
+        #     print("Connection to compass successful!")
+        #     break 
+
+        self.compass = LIS3MDL.compass()
 
         # initialise pushbutton
         GPIO.setup(pb[1],GPIO.IN)        # two pins are connected to the start button as safeguard
@@ -81,8 +84,8 @@ class Car:
 
         # initialise ultrasonic sensors
         self.us_front = DistanceSensor(echo=us_front["echo"], trigger=us_front["trig"], max_distance=3, pin_factory=factory)
-        self.tof_right = PiicoDev_VL53L1X( bus=0, sda=2, scl=3, freq = 400_000)
-        self.tof_left = PiicoDev_VL53L1X( bus=1, sda=27, scl=28, freq = 400_000 )
+        # self.tof_right = PiicoDev_VL53L1X( bus=0, sda=2, scl=3, freq = 400_000)
+        # self.tof_left = PiicoDev_VL53L1X( bus=1, sda=27, scl=28, freq = 400_000 )
 
         self.compass_direction = 0
         self.front_dist = 0
@@ -235,8 +238,8 @@ class Car:
         """
 
         self.front_dist = round(self.us_front.distance*100)
-        self.left_dist = (self.tof_left.read() // 10) 
-        self.right_dist = (self.tof_right.read() // 10) 
+        # self.left_dist = (self.tof_left.read() // 10) 
+        # self.right_dist = (self.tof_right.read() // 10) 
         self.compass_direction = self.compass.get_angle()
 
         if verbose:

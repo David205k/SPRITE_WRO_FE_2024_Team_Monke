@@ -3,7 +3,7 @@ This file stores the pin connections and component configurations for the robot.
 May consider using a yaml file instead.
 """
 
-camera={"shape": (640,480), "vertical FOV": 41, "horizontal FOV": 66, "focal length": 697}
+camera={"shape": (640,480), "vertical FOV": 67, "horizontal FOV": 102, "focal length": 390}
 
 # gpio pin convention
 servo={"pin":5,"start":0, "offset":-5, "min":-60, "max":60}
@@ -14,7 +14,11 @@ us4={"trig":13, "echo":6}
 us5={"trig":8, "echo":7}
 
 # physcial/board pin convention
-rgb={"red":8, "green":12, "blue":10}
-pb={1: 16, 2: 18}
-mDrvr={"stby": 37, "pwmA": 35, "ai1": 36, "ai2": 40} 
+# rgb={"red":8, "green":12, "blue":10}
+# pb={1: 16, 2: 18}
+# mDrvr={"stby": 37, "pwmA": 35, "ai1": 36, "ai2": 40} 
+rgb={"red":14, "green":15, "blue":18}
+pb={1: 23, 2: 24}
+mDrvr={"stby": 26, "pwmA": 19, "ai1": 16, "ai2": 21} 
+
 

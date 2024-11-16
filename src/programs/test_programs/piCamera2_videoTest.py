@@ -9,6 +9,12 @@ picam2.start()
 while (True):
 
     im = picam2.capture_array()
+
+    im = cv2.flip(im, 0) # Flip vertically
+    im = cv2.flip(im, 1) # Flip horizontally
+
+    im = cv2.resize(im, (640, 480))
+
     cv2.imshow('preview', im)
 
     if cv2.waitKey(1) == ord('q'):

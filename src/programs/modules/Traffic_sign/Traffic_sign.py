@@ -18,6 +18,7 @@ class Traffic_sign:
         self.upper_bound = sign_params["upper"]
         self.width = sign_params["width"]
         self.height = sign_params["height"]
+        # self.bbox_ratio = self.width/self.height
 
         self.mask = None
 
@@ -51,6 +52,7 @@ class Traffic_sign:
             area = w * h
 
             if area > largest_area and w > min_pixel_h and h > min_pixel_w:
+
                 largest_area = area
                 largest_bbox = (x, y, w, h)
 

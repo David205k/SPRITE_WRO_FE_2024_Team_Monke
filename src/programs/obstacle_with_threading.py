@@ -1,13 +1,10 @@
+from modules.Traffic_sign.Traffic_sign import Traffic_sign
 from modules.monke_hat import Car
 from parameters import *
 from component_params import *
-from modules.Traffic_sign.Traffic_sign import Traffic_sign
 
 from RPi import GPIO
 import threading
-from picamera2 import Picamera2
-from collections import deque
-import numpy as np
 import cv2
 from math import *
 import time
@@ -31,10 +28,13 @@ red_sign = Traffic_sign(RED_SIGN)
 parking_lot = Traffic_sign(PARKING_LOT)
 
 # global variables
-SPEED = 20              # percentage out of 1000
-MIN_WALL_DIST = 30     # cm
+SPEED = 20              # in %
+MIN_WALL_DIST = 30      # cm
 
-exit_key_pressed = False
+def reset_driving():
+    #reset
+    car.servo.write(0)
+    car.motor.speed(SPEED)
 
 def confine_ang(ang):
     """Confine self.heading to 0 and 360 degrees"""
@@ -67,6 +67,32 @@ def is_ang_in_range(ang: float, lower_bound: float, upper_bound: float) -> bool:
     else:
         return (ang >= lower_bound) or (ang <= upper_bound)
 
+def arc(radius:float, heading:float, speed:float=SPEED, tol:float = None, lower_tol:float = 0,  upper_tol:float = 0):
+
+    car.heading = heading
+
+    if tol != None:
+        upper = car.heading+tol
+        lower = car.heading-tol
+    else:
+        upper = car.heading+upper_tol
+        lower = car.heading+lower_tol
+
+    while not is_ang_in_range(car.compass_direction, lower, upper):
+        car.turn(radius)
+        car.motor.speed(speed)
+
+    #reset
+    reset_driving()
+
+def drive_dist(dist, speed=SPEED):
+    car.motor.speed(speed)
+    car.servo.write(car.pid_straight((1,0,0)))
+    time.sleep(dist/(abs(speed)/100 * MAX_SPEED_CMS))
+
+    #reset
+    reset_driving()
+
 def curve_to_point(radius:float, x:float, y:float):
     """
     Drive to a point x distance to the side, and y distance infront of the robot.
@@ -88,28 +114,15 @@ def curve_to_point(radius:float, x:float, y:float):
 
     tol = 5
     # first arc
-    car.heading = confine_ang(car.heading+theta)
-    print(f"Turning first arc. Radius {radius}")  
-    while not is_ang_in_range(car.compass_direction, car.heading-tol, car.heading+tol):
-        car.turn(radius)
-        car.motor.speed(SPEED)
+    arc(radius,heading=confine_ang(car.heading+theta),tol=tol)
 
     # tangent
-    print(f"Driving on tangent. Distance {tan_dist}")  
-    car.servo.write(car.pid_straight((1,0,0)))
-    car.motor.speed(SPEED)
-    travelling_time = tan_dist / (SPEED/100 * MAX_SPEED_CMS)
-
-    time.sleep(travelling_time)
+    drive_dist(tan_dist, SPEED)
 
     # returning arc
-    car.heading = confine_ang(car.heading-theta)
-    print(f"Turning last arc. Radius {radius}")  
-    while not is_ang_in_range(car.compass_direction, car.heading-tol, car.heading+tol): 
-        car.turn(-radius)
-        car.motor.speed(SPEED)
+    arc(-radius,heading=confine_ang(car.heading-theta),tol=tol)
 
-    car.servo.write(0)
+    return theta, tan_dist
 
 def calculate_route(r:float, x:float, y:float):
     """
@@ -128,13 +141,9 @@ def calculate_route(r:float, x:float, y:float):
     if y < 0: raise ValueError("Y should  be infront of car")
 
     cntr_2_cntr_length = sqrt((abs(x)-2*r)**2+y**2)                             # length of line btw the 2 arc centers
-    print(cntr_2_cntr_length)
     alpha = degrees(acos(r/(cntr_2_cntr_length/2)))                        # angle between radius and c2c line
-    print(f"alpa {alpha}")
     phi = degrees(atan2(y,abs(x)-2*r))                               # angle from c2c line to +ve x axis
-    print(f"phi {phi}")
     theta = 180 - alpha - phi                                     # angle of tangent to normal
-    print(f"theta {theta}")
     tangent = (y - 2*r*sin(radians(theta))) / cos(radians(theta))  # length of tangent
 
     # if x is negative, turning direction is opposite
@@ -142,13 +151,6 @@ def calculate_route(r:float, x:float, y:float):
         return -theta, tangent
     else:
         return theta, tangent
-
-def drive_dist(dist, speed):
-    car.motor.speed(speed)
-    car.servo.write(car.pid_straight((1,0,0)))
-    time.sleep(dist/(abs(speed)/100 * MAX_SPEED_CMS))
-    car.servo.write(0)
-    car.motor.speed(SPEED)
 
 prev_time = 0
 cur_time = 0
@@ -168,17 +170,17 @@ def show_visuals():
                                 text_pos, font, 1, (0,255,0), 1, line)
 
     # print red bbox and coordinates
-    # if red_sign.x != -999:
-    #     car.frame = red_sign.draw_bbox(car.frame, (0,0,255))
-    #     text_pos = (camera["shape"][0] - 250,camera["shape"][1] - 50)
-    #     car.frame = cv2.putText(car.frame, f"({red_sign.map_x:.2f},{red_sign.map_y:.2f})",
-    #                             text_pos, font, 1, (0,0,255), 1, line)
+    if red_sign.x != -999:
+        car.frame = red_sign.draw_bbox(car.frame, (0,0,255))
+        text_pos = (camera["shape"][0] - 250,camera["shape"][1] - 50)
+        car.frame = cv2.putText(car.frame, f"({red_sign.map_x:.2f},{red_sign.map_y:.2f})",
+                                text_pos, font, 1, (0,0,255), 1, line)
         
-    if parking_lot.x != -999:
-        car.frame = parking_lot.draw_bbox(car.frame, (255,51,255))
-        text_pos = (200,camera["shape"][1] - 50)
-        car.frame = cv2.putText(car.frame, f"({parking_lot.map_x:.2f},{parking_lot.map_y:.2f})",
-                                text_pos, font, 1, (255,51,255), 1, line)
+    # if parking_lot.x != -999:
+    #     car.frame = parking_lot.draw_bbox(car.frame, (255,51,255))
+    #     text_pos = (200,camera["shape"][1] - 50)
+    #     car.frame = cv2.putText(car.frame, f"({parking_lot.map_x:.2f},{parking_lot.map_y:.2f})",
+    #                             text_pos, font, 1, (255,51,255), 1, line)
 
     prev_time = cur_time
     cur_time = time.time()
@@ -187,8 +189,8 @@ def show_visuals():
                     (30,30), font, 1, (255,0,0), 1, line)
     
     cv2.imshow("Camera", car.frame)
-    cv2.imshow("Parking Lot", parking_lot.mask)
-    # cv2.imshow("Red", red_sign.mask)
+    # cv2.imshow("Parking Lot", parking_lot.mask)
+    cv2.imshow("Red", red_sign.mask)
     # cv2.imshow("Green", green_sign.mask)
 
 def setup():
@@ -200,50 +202,49 @@ def background_tasks():
 
     try:
         while True:
-            car.read_sensors()
+            car.read_sensors(True)
             car.read_button()
             car.compass.set_home(car.read_button())
 
             car.get_frame()
 
-            green_sign.detect_sign(frame=car.frame, min_pixel_h=20, min_pixel_w=20)
-            red_sign.detect_sign(frame=car.frame, min_pixel_h=20, min_pixel_w=20)
-            parking_lot.detect_sign(frame=car.frame, min_pixel_h=20, min_pixel_w=20)
+            green_sign.detect_sign(frame=car.frame, min_pixel_h=20, min_pixel_w=40)
+            red_sign.detect_sign(frame=car.frame, min_pixel_h=20, min_pixel_w=40)
+            # parking_lot.detect_sign(frame=car.frame, min_pixel_h=20, min_pixel_w=20)
 
-            show_visuals()
+            # show_visuals()
 
             if cv2.waitKey(1) & 0xFF == ord('q'): #break out of loop if 'q' is pressed
                 cv2.destroyAllWindows()
-                exit_key_pressed = True
                 break
 
     except Exception as e:
-        print(f"Error in background: {e}")
+        print(f"Error in background tasks: {e}")
 
 
 def main():
 
-    global exit_key_pressed
-
     car.driving_direction = "ACW"
-
-    start = False
-
-    can_turn = True
-    not_done = True
-
-    no_of_turns = 0
     total_turns = 12
 
+    start = False
+    can_turn = True
+    no_of_turns = 0
     start_pos = ()
 
     print("Boot complete. \nPress the button to run.")  
 
     while True:
+
+        # End the round
+        if (no_of_turns == total_turns 
+        and (car.front_dist <= start_pos[0]+10)): # stop at start position
+            start = False
+
         if car.but_press:
             start = True
-            # reset all variables
-            car.reset()
+            
+            car.reset()     # reset all variables
 
             start_pos = (car.front_dist, car.left_dist, car.right_dist)  # store starting position
 
@@ -252,54 +253,51 @@ def main():
             car.LED.rgb(100,100,100)
             time.sleep(0.2)
 
-            drive_dist(CAR_LENGTH/2 + 5, -20)
-        
-        if no_of_turns == total_turns and (car.front_dist <= start_pos[0]+10):
-            start = False
-
-
         if start:
             # Main code start here
             car.LED.rgb(0,0,200)
 
-            # pass on left of green traffic sign
-            if (green_sign.map_x != -999 and green_sign.map_x < CAR_WIDTH/2
-            and (35 < green_sign.map_y < 60)):
-                print(f"Passing on left. Green sign: {green_sign.map_x:.2f} cm, {green_sign.map_y:.2f}")
-                car.LED.rgb(0,200,0)
-                x = green_sign.map_x - green_sign.width/2 - CAR_WIDTH / 2 - 5
-                y = green_sign.map_y - 5
-                r = 16
+            # # pass on left of green traffic sign
+            # if (green_sign.map_x != -999 and green_sign.map_x < CAR_WIDTH/2
+            # and (35 < green_sign.map_y < 50)):
+            #     print(f"Passing on left. Green sign: {green_sign.map_x:.2f} cm, {green_sign.map_y:.2f}")
 
-                curve_to_point(r, x, y)
+            #     car.LED.rgb(0,200,0)
+            #     x = green_sign.map_x - green_sign.width/2 - CAR_WIDTH/2
+            #     y = green_sign.map_y
+            #     r = 16
+
+            #     curve_to_point(r, x, y)
                 
-                drive_dist(20, 20)
-                while not is_ang_in_range(car.compass_direction, car.heading+90-5,car.heading+90+5):
-                    car.turn(-16)
-                    car.motor.speed(20)
-
-                while not is_ang_in_range(car.compass_direction, car.heading-5,car.heading+5):
-                    car.turn(16) 
-                    car.motor.speed(20)  
-                car.servo.write(0)                 
+            #     drive_dist(green_sign.width+5, r)
                 
+            #     # curve back to middle
+            #     arc(-16, confine_ang(car.heading+90), tol=5)
+            #     arc(16, confine_ang(car.heading-90), tol=5)
 
-            # pass on right of red traffic sign
-            elif (red_sign.map_x != -999 and red_sign.map_x > - (CAR_WIDTH/2 + RED_SIGN["width"])
-            and (35 < red_sign.map_y < 60)):
-                print(f"Passing on right. Red sign: {red_sign.map_x:.2f} cm, {red_sign.map_y:.2f}")
-                car.LED.rgb(200,0,0)
+            # # pass on right of red traffic sign
+            # elif (red_sign.map_x != -999 and red_sign.map_x > -(CAR_WIDTH/2 + RED_SIGN["width"])
+            # and (33 < red_sign.map_y < 60)):
+            #     print(f"Passing on right. Red sign: {red_sign.map_x:.2f} cm, {red_sign.map_y:.2f}")
+                
+            #     car.LED.rgb(200,0,0)
+            #     x = red_sign.map_x + red_sign.width/2 + CAR_WIDTH / 2
+            #     y = red_sign.map_y
+            #     r = 16
 
-                x = red_sign.map_x + red_sign.width/2 + CAR_WIDTH/2 + 5
-                y = red_sign.map_y - 5
-                r = -16 
-                print(f"x: {x} y: {y}")
-                curve_to_point(r, x, y)
+            #     curve_to_point(-r, x, y)
+                
+            #     drive_dist(5+red_sign.width+5, 20)
+                
+            #     # curve back to middle
+            #     arc(16, confine_ang(car.heading-90), tol=5)
+            #     arc(-16, confine_ang(car.heading+90), tol=5)
 
             # corner turn
-            elif (car.front_dist <= 70 and can_turn and (green_sign.x != -999 or red_sign.x != -999) and
-                  ((car.right_dist >= 50 and car.driving_direction == "CW") or 
-                (car.left_dist >= 50 and car.driving_direction == "ACW"))):
+            # el
+            if (car.front_dist <= 70 and can_turn  and
+                  ((car.right_dist >= 100 and car.driving_direction == "CW") or 
+                (car.left_dist >= 100 and car.driving_direction == "ACW"))):
                 print(f"Turning. Front: {car.front_dist:.0f} Left: {car.left_dist:.0f} Right {car.left_dist:.0f}")
 
                 no_of_turns += 1
@@ -315,16 +313,10 @@ def main():
                 elif car.driving_direction == "ACW":
                     car.heading -= 90 
 
-                car.heading = confine_ang(car.heading)
+                arc(turn_radius, car.heading, 
+                speed=20 + min(10,10*abs(((confine_ang(car.heading-car.compass_direction))/90))),
+                lower_tol=lower_ang, upper_tol=upper_ang)
 
-                while not is_ang_in_range(car.compass_direction, car.heading+lower_ang, car.heading+upper_ang):
-                                
-                    # decelerate as car reaches the direction
-                    speed = 20 + min(10,10*abs(((confine_ang(car.heading-car.compass_direction))/90)))
-                    car.turn(turn_radius)
-                    car.motor.speed(speed)
-
-                car.servo.write(0)
                 drive_dist(CAR_LENGTH/2,-20)
 
             # # avoid when too close to walls
@@ -343,10 +335,6 @@ def main():
 
         else:
             car.inactive()
-
-        if exit_key_pressed:
-            break
-
 
 if __name__=="__main__":
 

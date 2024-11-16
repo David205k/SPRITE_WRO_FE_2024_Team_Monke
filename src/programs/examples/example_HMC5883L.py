@@ -1,8 +1,5 @@
-import sys
-sys.path.append("/home/monke/WRO FE 2024 (Repository)/src/programs/modules/monke_hat")
-
 from RPi import GPIO
-import HMC5883L_control as HMC5883L
+from modules.monke_hat.HMC5883L_control import HMC5883L
 
 GPIO.setwarnings(False) # turn off warnings for pins (if pins were previously used and not released properly there will be warnings)
 GPIO.setmode(GPIO.BOARD) # pin name convention used is pin numbers on board
