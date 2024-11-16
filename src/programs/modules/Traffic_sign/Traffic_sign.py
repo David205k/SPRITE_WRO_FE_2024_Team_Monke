@@ -18,6 +18,7 @@ class Traffic_sign:
         self.upper_bound = sign_params["upper"]
         self.width = sign_params["width"]
         self.height = sign_params["height"]
+        self.colour = sign_params["colour"]
         # self.bbox_ratio = self.width/self.height
 
         self.mask = None
