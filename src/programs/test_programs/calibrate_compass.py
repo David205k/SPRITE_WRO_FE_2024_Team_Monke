@@ -4,6 +4,8 @@ for each axes will be generated. Copy and replace the values in the "compass" cl
 in "HMC5883lControl.py".
 """
 
+import sys
+sys.path.append("/home/monke/WRO FE 2024 (Repository)/src/programs")
 
 import smbus2
 import time
@@ -11,16 +13,15 @@ from tqdm import tqdm
 import csv
 import RPi.GPIO as GPIO # use RPi library for controlling GPIO pins
 
-from monke_hat import Car
-from component_params import *
+from modules.monke_hat.Car import Car
+from programs.robot_config import *
 
 GPIO.setwarnings(False) # turn off warnings for pins (if pins were previously used and not released properly there will be warnings)
 GPIO.setmode(GPIO.BOARD) # pin name convention used is pin numbers on board
 
 # initialise car object
-car = Car.Car(
+car = Car(
     camera=camera,
-    wheelBase=wheelBase,
     servo=servo,
     us_front=us4,
     us_left=us2,

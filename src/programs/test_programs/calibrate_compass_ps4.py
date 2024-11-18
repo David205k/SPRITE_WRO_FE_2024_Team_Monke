@@ -13,10 +13,9 @@ import time
 from tqdm import tqdm
 import csv
 import RPi.GPIO as GPIO # use RPi library for controlling GPIO pins
-import monke_hat.HMC5883LControl as HMC5883LControl
 
-from monke_hat import Car
-from component_params import *
+from modules.monke_hat.Car import Car
+from programs.robot_config import *
 
 GPIO.setwarnings(False) # turn off warnings for pins (if pins were previously used and not released properly there will be warnings)
 GPIO.setmode(GPIO.BOARD) # pin name convention used is pin numbers on board
@@ -31,9 +30,8 @@ joystick.init()
 print("Controller name:", joystick.get_name())
 
 # initialise car object
-car = Car.Car(
+car = Car(
     camera=camera,
-    wheelBase=wheelBase,
     servo=servo,
     us_front=us4,
     us_left=us2,

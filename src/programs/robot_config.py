@@ -25,6 +25,12 @@ May consider using a yaml file instead.
 # pb={1: 23, 2: 24} # 16, 18 (physical)
 # mDrvr={"stby": 26, "pwmA": 19, "ai1": 16, "ai2": 21} # 37, 35, 36, 40  (physical)
 
+# old
+# MAX_SPEED_CMS = 44 #cm/s
+# CAR_WIDTH = 17 # cm
+# CAR_LENGTH = 18.5 # cm
+# WHEELBASE = 12 # cm
+
 # new robot configuration 
 # -------------------------------------------------------------------------------------------
 
@@ -40,3 +46,9 @@ us5={"trig":16, "echo":21} # 36, 40 (physical)
 rgb={"red":14, "green":15, "blue":18} # 8, 10, 12 (physical)
 pb={1: 23, 2: 24} # 16, 18 (physical)
 mDrvr={"stby":26, "pwmA":19, "ai1":12, "ai2":20} # 37, 35, 32, 38  (physical)
+
+MAX_SPEED_CMS = 44 #cm/s
+CAR_WIDTH = 11.5 # cm
+CAR_LENGTH = 17.5 # cm
+CAR_HEIGHT = 30 # cm
+WHEELBASE = 11 # cm

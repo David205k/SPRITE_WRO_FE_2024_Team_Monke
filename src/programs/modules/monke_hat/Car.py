@@ -1,6 +1,6 @@
 import sys
-sys.path.append('/home/monke/WRO FE 2024 (Repository)/src/programs/modules')
 sys.path.append('/home/monke/WRO FE 2024 (Repository)/src/programs')
+
 import RPi.GPIO as GPIO # use RPi library for controlling GPIO pins
 from gpiozero.pins.pigpio import PiGPIOFactory
 
@@ -46,7 +46,8 @@ class Car:
                  us_spare2: dict,
                  rgb: dict,
                  pb: dict,
-                 mDrvr: dict
+                 mDrvr: dict,
+                 robot_params: dict,
                  ):
 
         self._camera = camera
@@ -59,6 +60,7 @@ class Car:
         self._rgb = rgb
         self._pb = pb
         self._mDrvr = mDrvr
+        self._robot_params = robot_params
 
         # initialise components  
         #---------------------------------------------------------------------------------------------
@@ -84,13 +86,28 @@ class Car:
 
         # initialise ultrasonic sensors
         self.us_front = DistanceSensor(echo=us_front["echo"], trigger=us_front["trig"], max_distance=3, pin_factory=factory)
-        # self.tof_right = PiicoDev_VL53L1X( bus=0, sda=2, scl=3, freq = 400_000)
-        # self.tof_left = PiicoDev_VL53L1X( bus=1, sda=27, scl=28, freq = 400_000 )
+        
+        left_shut = 11
+        right_shut = 8
+        GPIO.setup(left_shut, GPIO.OUT)
+        GPIO.setup(right_shut, GPIO.OUT)
+        
+        GPIO.output(left_shut, GPIO.LOW)
+        GPIO.output(right_shut, GPIO.LOW)
+
+        GPIO.output(left_shut, GPIO.HIGH)
+        self.tof_left = PiicoDev_VL53L1X( bus=1, sda=27, scl=28, freq = 400_000 )
+        self.tof_left.change_addr(0x30)
+
+        GPIO.output(right_shut, GPIO.HIGH)
+        self.tof_right = PiicoDev_VL53L1X( bus=1, sda=27, scl=28, freq = 400_000)
+        self.tof_right.change_addr(0x31)
 
         self.compass_direction = 0
         self.front_dist = 0
         self.left_dist = 0
         self.right_dist = 0
+        self.side_diff = 0
         self.but_press = False
 
         self.heading = 0
@@ -179,7 +196,7 @@ class Car:
     def start_cam(self):
         """Initialise the car's camera"""
         self.picam2 = Picamera2()
-        self.picam2.preview_configuration.main.size=(1920,1000)
+        self.picam2.preview_configuration.main.size=self._camera["shape"] #(1920,1000)
         self.picam2.preview_configuration.main.format = 'RGB888'
         self.picam2.start()
 
@@ -198,8 +215,6 @@ class Car:
         if rotate:
             self.frame = cv2.flip(self.frame, 0) # Flip vertically
             self.frame = cv2.flip(self.frame, 1) # Flip horizontally
-
-        self.frame = cv2.resize(self.frame, (self._camera["shape"]))
 
         return self.frame
 
@@ -238,9 +253,10 @@ class Car:
         """
 
         self.front_dist = round(self.us_front.distance*100)
-        # self.left_dist = (self.tof_left.read() // 10) 
-        # self.right_dist = (self.tof_right.read() // 10) 
-        self.compass_direction = self.compass.get_angle()
+        self.left_dist = (self.tof_left.read() // 10) 
+        self.right_dist = (self.tof_right.read() // 10) 
+        self.side_diff = self.left_dist - self.right_dist
+        self.compass_direction = round(self.compass.get_angle())
 
         if verbose:
             print(f"Front: {self.front_dist} Left: {self.left_dist} Right: {self.right_dist} Compass: {self.compass_direction}")

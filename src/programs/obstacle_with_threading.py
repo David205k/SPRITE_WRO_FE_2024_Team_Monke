@@ -1,7 +1,8 @@
 from modules.Traffic_sign.Traffic_sign import Traffic_sign
-from modules.monke_hat import Car
+from modules.monke_hat.Car import Car
 from parameters import *
-from component_params import *
+from programs.robot_config import *
+from helper_functions import *
 
 from RPi import GPIO
 import threading
@@ -10,7 +11,7 @@ from math import *
 import time
 
 # objects
-car = Car.Car(
+car = Car(
     camera=camera,
     servo=servo,
     us_front=us4,
@@ -29,7 +30,7 @@ parking_lot = Traffic_sign(PARKING_LOT)
 
 
 def reset_driving():
-    #reset
+    #reset servo angle and motor speed to default
     car.servo.write(0)
     car.motor.speed(SPEED)
 
@@ -38,7 +39,23 @@ def drive_dist(dist, speed=SPEED):
     car.servo.write(car.pid_straight((1,0,0)))
     time.sleep(dist/(abs(speed)/100 * MAX_SPEED_CMS))
 
-    #reset
+    reset_driving()
+
+def arc(radius:float, heading:float, speed:float=SPEED, tol:float = None, lower_tol:float = 0,  upper_tol:float = 0):
+
+    car.heading = heading
+
+    if tol != None:
+        upper = car.heading+tol
+        lower = car.heading-tol
+    else:
+        upper = car.heading+upper_tol
+        lower = car.heading+lower_tol
+
+    while not is_ang_in_range(car.compass_direction, lower, upper):
+        car.turn(radius)
+        car.motor.speed(speed)
+
     reset_driving()
 
 def curve_to_point(radius:float, x:float, y:float):
@@ -72,35 +89,37 @@ def curve_to_point(radius:float, x:float, y:float):
 
     return theta, tan_dist
 
-def avoid_taffic_sign(sign:Traffic_sign, pass_on_side:str):
+def avoid_sign(sign:Traffic_sign, pass_on_side:str):
 
     x_within_dist = {"left": sign.map_x <= CAR_WIDTH/2,
                   "right": sign.map_x >= -CAR_WIDTH/2}
+    
+    side = 1 if pass_on_side == "left" else -1
 
     if (sign.have_sign and x_within_dist
         and 35 <= sign.map_y <= 100):
 
-        print(f"Passing on {pass_on_side}. {sign.colour} at {sign.map_x:.2f},{sign.map_y:.2f}")
+        print(f"Passing on {pass_on_side}. {sign.type} at {sign.map_x:.2f},{sign.map_y:.2f}")
         b,g,r = sign.bbox_colour
         car.LED.rgb(r,g,b)
 
         buffer = 5
-        x = CAR_WIDTH/2 + sign.width/2 + buffer
+        x = sign.map_x + (CAR_WIDTH/2 + sign.width/2 + buffer) * -side
         y = sign.map_y
         r = 16
-
+        r = r * side
+        
         print(f"Moving to {(x,y)}")
 
+        # avoid object
         curve_to_point(r, x, y)
-        
+
+        # drive straight pass the object
         drive_dist(green_sign.width+5)
         
         # curve back to middle
-        arc(-16, confine_ang(car.heading+90), tol=5)
-        arc(16, confine_ang(car.heading-90), tol=5)
-
-
-    
+        arc(-16*side, confine_ang(car.heading+90*side), tol=5)
+        arc(16*side, confine_ang(car.heading-90*side), tol=5)
 
 prev_time = 0
 cur_time = 0
@@ -187,11 +206,16 @@ def main():
             # Main code start here
             car.LED.rgb(0,0,200)
 
-            avoid_traffic_sign()
-            if (car.front_dist <= 70 and can_turn  and
-                  ((car.right_dist >= 100 and car.driving_direction == "CW") or 
-                (car.left_dist >= 100 and car.driving_direction == "ACW"))):
+            diff = car.left_dist - car.right_dist
+            
+            if red_sign.have_sign:
+                avoid_sign(red_sign, "right")
+            elif green_sign.have_sign:
+                avoid_sign(green_sign, "left")
+            elif (car.front_dist <= 70 and can_turn and abs(car.side_diff) >= 10):
                 print(f"Turning. Front: {car.front_dist:.0f} Left: {car.left_dist:.0f} Right {car.left_dist:.0f}")
+
+                car.driving_direction = "ACW" if diff >= 0 else "CW"
 
                 no_of_turns += 1
                 can_turn = False

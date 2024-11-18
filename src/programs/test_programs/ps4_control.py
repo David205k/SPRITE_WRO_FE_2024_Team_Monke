@@ -15,27 +15,23 @@ when using joystick.
 
 Controls:
     Triangle: Quit
-    Circle: Set compass home
+    Circle: Record Video
+    X: Time robot to get robot speed
     Right Joystick: Motor Speed
     Left Joystick: Servo Angle
 """
 import sys
-sys.path.append('/home/monke/WRO FE 2024 (Repository)/src/programs/modules')
 sys.path.append('/home/monke/WRO FE 2024 (Repository)/src/programs')
-from monke_hat import Car
-from component_params import *
+
+from modules.monke_hat.Car import Car
+from programs.robot_config import *
 import cv2
 from RPi import GPIO
 import pygame
 import time
-import csv
-from Traffic_sign.Traffic_sign import Traffic_sign
+from modules.Traffic_sign.Traffic_sign import Traffic_sign
 from parameters import * 
 
-import threading
-
-MAX_SPEED = 20 # maximum motor speed
-MAX_ANGLE = 45 # maximum motor angle
 
 # Initialize pygame and the joystick
 pygame.init()
@@ -47,18 +43,22 @@ joystick.init()
 
 print("Controller name:", joystick.get_name())
 
-car = Car.Car(
+car = Car(
     camera=camera,
     servo=servo,
-    us_front=us4,
+    us_front=us1,
     us_left=us2,
     us_right=us5,
-    us_spare1=us1,
+    us_spare1=us4,
     us_spare2=us3,
     rgb=rgb,
     pb=pb,
     mDrvr=mDrvr 
 )
+
+MAX_SPEED = 50 # maximum motor speed
+MAX_ANGLE = car.servo.maxAng # maximum motor angle
+
 green_sign = Traffic_sign(GREEN_SIGN)
 red_sign = Traffic_sign(RED_SIGN)
 
@@ -75,19 +75,8 @@ def show_visuals():
     font = cv2.FONT_HERSHEY_SIMPLEX
     line = cv2.LINE_AA
 
-    # print green bbox and coordinates
-    if green_sign.x != -999:
-        car.frame = green_sign.draw_bbox(car.frame, (0,255,0))
-        text_pos = (50,camera["shape"][1] - 50)
-        car.frame = cv2.putText(car.frame, f"({green_sign.map_x:.2f}, {green_sign.map_y:.2f})",
-                                text_pos, font, 1, (0,255,0), 1, line)
-
-    # print red bbox and coordinates
-    if red_sign.x != -999:
-        car.frame = red_sign.draw_bbox(car.frame, (0,0,255))
-        text_pos = (camera["shape"][0] - 200,camera["shape"][1] - 50)
-        car.frame = cv2.putText(car.frame, f"({red_sign.map_x:.2f},{red_sign.map_y:.2f})",
-                                text_pos, font, 1, (0,0,255), 1, line)
+    car.frame = green_sign.draw_bbox(car.frame)
+    car.frame = red_sign.draw_bbox(car.frame)
         
     prev_time = cur_time
     cur_time = time.time()
@@ -96,50 +85,24 @@ def show_visuals():
                     (30,30), font, 1, (255,0,0), 1, line)
     cv2.imshow("Camera", car.frame)
 
-
-def background_tasks():
-
-    try:
-        while True:
-            car.read_sensors()
-            car.read_button()
-            car.compass.set_home(car.read_button())
-
-            car.get_frame()
-
-            green_sign.detect_sign(frame=car.frame, min_pixel_h=20, min_pixel_w=20)
-            red_sign.detect_sign(frame=car.frame, min_pixel_h=20, min_pixel_w=20)
-
-            show_visuals()
-
-            out.write(car.frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'): #break out of loop if 'q' is pressed
-                out.release()
-                cv2.destroyAllWindows()
-                break
-
-    except Exception as e:
-        print(f"Error in background: {e}")
-
 def map(var, min1, max1, min2, max2):
     return ((var - min1) / (max1-min1)) * (max2 - min2) + min2
 
 prev_button_x = False
 prev_button_o = False
 prev_button_tri = False
+up_down_prev = 0
 
 button_x = False
 button_o = False
 button_tri = False
 
-up_down_prev = 0
+record = False
 
-counter = 0
+time_robot = False
 
 try:
     car.start_cam()
-    # background_thread = threading.Thread(target=background_tasks, daemon=True)
-    # background_thread.start()
     start = False
     while True:
 
@@ -149,7 +112,7 @@ try:
         if start: 
             # Get events from the controller
             pygame.event.pump()
-            car.read_sensors()
+            # car.read_sensors()
             
             car.compass.set_home(car.read_button())
 
@@ -172,34 +135,37 @@ try:
             car.servo.write(servoAng)
             car.LED.rgb(0,255,0)
 
+            # calculate robot speed
             if button_x == 1 and prev_button_x == 0:
-                counter+=1
-                if counter % 2 == 1:
+                time_robot = not time_robot
+                if time_robot:
                     start_t = time.time()
                     print("Started timing...")
                 else:
                     end_t = time.time()
                     print("Ended timing...")
-                    dist = 100
+                    dist = 100 # cm
                     print("speed: ", dist/(end_t-start_t), " cm/s")
-            if button_o == 1 and prev_button_o == 0:
-                pass
-                # car.compass.set_home()
-                # car.LED.rgb(255,0,0)
-                # time.sleep(0.3)
 
+            # record video feed
+            if button_o == 1 and prev_button_o == 0:
+                record = not record
+                if record: print("Started recording...")
+                else: print("Ended recording")
+
+            # break out of loop
             if button_tri == 1:
                 break
-            # car.print_sensor_vals()
 
-            car.get_frame()
+            if record:
+                out.write(car.frame)
 
-            green_sign.detect_sign(frame=car.frame, min_pixel_h=20, min_pixel_w=20)
-            red_sign.detect_sign(frame=car.frame, min_pixel_h=20, min_pixel_w=20)
+            # car.get_frame()
+            # green_sign.detect_sign(frame=car.frame)
+            # red_sign.detect_sign(frame=car.frame)
+            # show_visuals()
 
-            show_visuals()
 
-            out.write(car.frame)
             if cv2.waitKey(1) & 0xFF == ord('q'): #break out of loop if 'q' is pressed
                 out.release()
                 cv2.destroyAllWindows()
@@ -209,7 +175,6 @@ except Exception as E:
     print(f"{E} occured. Exiting...")
 
 finally:
-    # background_thread.join()
     out.release()
     car.LED.off()
     joystick.quit()

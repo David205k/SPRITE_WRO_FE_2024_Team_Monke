@@ -3,7 +3,7 @@ sys.path.append("/home/monke/WRO FE 2024 (Repository)/src/programs")
 
 import cv2
 from math import * 
-from component_params import camera
+from programs.robot_config import camera
 
 CAM_HEIGHT = camera["shape"][1]
 CAM_WIDTH = camera["shape"][0]

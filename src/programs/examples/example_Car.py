@@ -2,7 +2,7 @@ import sys
 sys.path.append("/home/monke/WRO FE 2024 (Repository)/src/programs")
 
 from modules.monke_hat.Car import Car
-from component_params import *
+from programs.robot_config import *
 import cv2
 from RPi import GPIO
 

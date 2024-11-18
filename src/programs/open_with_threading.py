@@ -1,5 +1,5 @@
-from modules.monke_hat import Car
-from component_params import *
+from modules.monke_hat.Car import Car
+from programs.robot_config import *
 from parameters import *
 from modules.Traffic_sign.Traffic_sign import Traffic_sign
 
@@ -13,7 +13,7 @@ from math import *
 import time
 
 # objects
-car = Car.Car(
+car = Car(
     camera=camera,
     servo=servo,
     us_front=us4,

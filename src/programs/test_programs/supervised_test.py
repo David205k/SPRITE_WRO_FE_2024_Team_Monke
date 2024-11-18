@@ -1,5 +1,5 @@
-from monke_hat import Car
-from component_params import *
+from modules.monke_hat import Car
+from programs.robot_config import *
 
 import numpy as np
 from sklearn.model_selection import train_test_split
