@@ -52,6 +52,6 @@ class Servo:
             Angular position to move the servo to (-90 to 90)
         """
 
-        angle = -max(min(angle+self.offset, self.maxAng), self.minAng) # limit angle between minAng and maxAng
+        angle = max(min(angle+self.offset, self.maxAng), self.minAng) # limit angle between minAng and maxAng
         self.servo.angle = round(angle) 
     

@@ -1,24 +1,24 @@
 import sys
 sys.path.append("/home/monke/WRO FE 2024 (Repository)/src/programs")
-sys.path.append("/home/monke/WRO FE 2024 (Repository)/src/programs/modules/monke_hat")
 
-import Car
+from modules.monke_hat.Car import Car
 from component_params import *
 import cv2
 from RPi import GPIO
 
-car = Car.Car(
+car = Car(
     camera=camera,
     servo=servo,
-    us_front=us4,
+    us_front=us1,
     us_left=us2,
     us_right=us5,
-    us_spare1=us1,
+    us_spare1=us4,
     us_spare2=us3,
     rgb=rgb,
     pb=pb,
     mDrvr=mDrvr
 )
+
 def main():
     while True:
 

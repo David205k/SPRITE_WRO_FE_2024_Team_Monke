@@ -1,9 +1,9 @@
 import sys
-sys.path.append('/home/monke/WRO FE 2024 (Repository)/src/programs/modules/monke_hat')
+sys.path.append('/home/monke/WRO FE 2024 (Repository)/src/programs/modules')
 
-from Tb6612fng_control import Motor
+from modules.monke_hat.Tb6612fng_control import Motor
 
-motor = Motor(37, 35, 36, 40) 
+motor = Motor(26, 19, 12, 20) 
 
 while True:
 

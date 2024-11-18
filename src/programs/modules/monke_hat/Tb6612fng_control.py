@@ -1,8 +1,12 @@
+import sys
+sys.path.append('/home/monke/WRO FE 2024 (Repository)/src/programs')
+
 import RPi.GPIO as GPIO # use RPi library for controlling GPIO pins
 import modules.monke_hat.Pwm_control as Pwm_control
 
 GPIO.setwarnings(False) # turn off warnings for pins (if pins were previously used and not released properly there will be warnings)
 # GPIO.setmode(GPIO.BOARD) # pin name convention used is pin numbers on board
+GPIO.setmode(GPIO.BCM) # pin name convention used is pin numbers on board
 
 class Motor:
 

@@ -18,11 +18,13 @@ class Traffic_sign:
         self.upper_bound = sign_params["upper"]
         self.width = sign_params["width"]
         self.height = sign_params["height"]
-        self.colour = sign_params["colour"]
+        self.type = sign_params["type"]
+        self.bbox_colour = sign_params["bbox colour"]
+        self.min_pixel_h = sign_params["min h"]
+        self.min_pixel_w = sign_params["min w"]
         # self.bbox_ratio = self.width/self.height
 
         self.mask = None
-
         self.have_second_range = True
 
         try: 
@@ -41,6 +43,7 @@ class Traffic_sign:
         self.h = -999
         self.map_x = -999
         self.map_y = -999
+        self.have_sign = False
 
     def get_bbox(self, mask, min_pixel_h, min_pixel_w):
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -59,7 +62,7 @@ class Traffic_sign:
 
         return largest_bbox
 
-    def detect_sign(self, frame, min_pixel_h=20, min_pixel_w=20):
+    def detect_sign(self, frame):
         
         hsvImage = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)   # Convert image from BGR to HSV
         mask = cv2.inRange(hsvImage, self.lower_bound, self.upper_bound)  # Create mask for the color
@@ -70,7 +73,7 @@ class Traffic_sign:
 
         self.mask = mask
 
-        bbox = self.get_bbox(mask, min_pixel_h, min_pixel_w)
+        bbox = self.get_bbox(mask, self.min_pixel_h, self.min_pixel_w)
 
         if bbox is not None: 
             x1, y1, w, h = bbox
@@ -90,8 +93,7 @@ class Traffic_sign:
             self.h = h
             self.map_x = map_x
             self.map_y = map_y
-
-            return True
+            self.have_sign = True
         else:
 
             self.x1 = -999
@@ -104,12 +106,22 @@ class Traffic_sign:
             self.h = -999
             self.map_x = -999
             self.map_y = -999
-            return False
+            self.have_sign = False
 
-    def draw_bbox(self, frame, colour):
-        frame = cv2.rectangle(frame, (self.x1, self.y1), (self.x2, self.y2), colour, 1)
+    def draw_bbox(self, frame):
+
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        line = cv2.LINE_AA
+
+        text_pos = {
+                    "green": (50,camera["shape"][1] - 50),  # left
+                    "red": (camera["shape"][0] - 250,camera["shape"][1] - 50), # right
+                    "pink": (200,camera["shape"][1] - 50)   # middle
+                    }
+
+        if self.have_sign:
+            frame = cv2.rectangle(frame, (self.x1, self.y1), (self.x2, self.y2), self.bbox_colour, 1)
+            frame = cv2.putText(frame, f"({self.map_x:.2f}, {self.map_y:.2f})",
+                                    text_pos[self.type], font, 1, self.bbox_colour, 1, line) 
+
         return frame
-
-
-
-

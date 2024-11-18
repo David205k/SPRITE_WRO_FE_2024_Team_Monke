@@ -1,11 +1,11 @@
 # need sudo pigpiod
 import sys
 
-sys.path.append('/home/monke/WRO FE 2024 (Repository)/src/programs/modules/monke_hat')
+sys.path.append('/home/monke/WRO FE 2024 (Repository)/src/programs')
 
-from Servo_control import Servo
+from modules.monke_hat.Servo_control import Servo
 
-servo = Servo(5, 0, -5, -60, 60)
+servo = Servo(gpioPin=5, startPos=0, offset=-5, minAng=-60, maxAng=60)
 while True:
 
     try:
