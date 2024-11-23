@@ -1,15 +1,23 @@
+"""
+This program is used to calculate the focal length of the robot's 
+camera in pixels. 
+"""
+
+import sys
+sys.path.append("/home/monke/WRO FE 2024 (Repository)/src/programs")
+
 import cv2
 from picamera2 import Picamera2
 import threading
 import time
 from math import *
 
+from robot_config import camera
+
 picam2 = Picamera2()
 picam2.preview_configuration.main.size=(1920,1000)
 picam2.preview_configuration.main.format = 'RGB888'
 picam2.start()
-
-CAM_SHAPE = (640, 480)
 
 def read_cam():
     while True:
@@ -19,7 +27,7 @@ def read_cam():
         im = cv2.flip(im, 0) # Flip vertically
         im = cv2.flip(im, 1) # Flip horizontally
         
-        im = cv2.resize(im, CAM_SHAPE)
+        im = cv2.resize(im, camera["shape"])
 
         cv2.imshow('preview', im)
 
@@ -52,7 +60,7 @@ def get_focal_len():
     print(f"Average focal length (pixels): {focal_length_average}")
 
 try: 
-    background_thread = threading.Thread(target=read_cam, daemon=True)
+    background_thread = threading.Thread(target=read_cam, daemon=True) # run camera display in background
     background_thread.start()
     try:
         get_focal_len()

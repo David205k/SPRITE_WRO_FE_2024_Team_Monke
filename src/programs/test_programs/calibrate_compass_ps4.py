@@ -15,7 +15,7 @@ import csv
 import RPi.GPIO as GPIO # use RPi library for controlling GPIO pins
 
 from modules.monke_hat.Car import Car
-from programs.robot_config import *
+from robot_config import *
 
 GPIO.setwarnings(False) # turn off warnings for pins (if pins were previously used and not released properly there will be warnings)
 GPIO.setmode(GPIO.BOARD) # pin name convention used is pin numbers on board
@@ -33,11 +33,11 @@ print("Controller name:", joystick.get_name())
 car = Car(
     camera=camera,
     servo=servo,
-    us_front=us4,
-    us_left=us2,
-    us_right=us5,
-    us_spare1=us1,
-    us_spare2=us3,
+    us_front=us_spare1,
+    us_left=us_left,
+    us_right=us_spare2,
+    us_spare1=us_front,
+    us_spare2=us_right,
     rgb=rgb,
     pb=pb,
     mDrvr=mDrvr

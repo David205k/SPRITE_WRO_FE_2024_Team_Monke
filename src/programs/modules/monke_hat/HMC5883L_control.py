@@ -7,8 +7,11 @@ class compass:
 
     Methods
     -------
-    set_home(signal=True)
+    read_raw_data(addr)
+    compute_heading(x,y)
     get_angle(relative=True)
+    apply_calibration(raw_x, raw_y, raw_z)
+    set_home(signal=True)
     """
 
     # HMC5883L register addresses
@@ -21,8 +24,6 @@ class compass:
 
     # area specific alterations
     DECLINATION_ANGLE = 0.22
-    # X_OFFSET, Y_OFFSET, Z_OFFSET = -18.5, -119.0, 0
-    # X_SCALE, Y_SCALE, Z_SCALE = 384.5, 392.0, 1
     X_OFFSET, Y_OFFSET, Z_OFFSET = -28.0, -138.0, 0
     X_SCALE, Y_SCALE, Z_SCALE = 511.0, 498.0, 1
     bus = None

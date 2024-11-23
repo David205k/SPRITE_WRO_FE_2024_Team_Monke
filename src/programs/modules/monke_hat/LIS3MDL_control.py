@@ -1,26 +1,40 @@
-# SPDX-FileCopyrightText: 2021 ladyada for Adafruit Industries
-# SPDX-License-Identifier: MIT
+# Check i2c device: i2c detect -y <bus number>
+# LIS3MDL Datasheet: https://www.adafruit.com/product/4479 
+# address: 0x1c
 
-""" Display compass heading data five times per second """
 from math import atan2, degrees
 import board
 import adafruit_lis3mdl
 
 class compass:
 
+    # compass offset and scale values (specific to envrionment and module)
+    X_OFFSET, Y_OFFSET, Z_OFFSET = -24.327681964337913, 22.288804443145285, -0.02923121894182934
+    X_SCALE, Y_SCALE, Z_SCALE = 46.645717626425025, 44.636071324174225, 11.137094416837183
+
     def __init__(self):
 
         i2c = board.I2C()  # uses board.SCL and board.SDA
 
-        # i2c = board.STEMMA_I2C()  # For using the built-in STEMMA QT connector on a microcontroller
         self.lis3mdl = adafruit_lis3mdl.LIS3MDL(i2c)
 
         self.startPos = 0
+
+    def apply_calibration(self, raw_x, raw_y):
+        """
+        Apply the offset and scale from calibration to raw readings
+        """
+
+        corrected_x = (raw_x - self.X_OFFSET) / self.X_SCALE
+        corrected_y = (raw_y - self.Y_OFFSET) / self.Y_SCALE
+        
+        return corrected_x, corrected_y
 
     def get_angle(self, relative=True):
         while True:
             try:
                 magnet_x, magnet_y, _ = self.lis3mdl.magnetic
+                magnet_x, magnet_y = self.apply_calibration(magnet_x, magnet_y)
             except OSError:
                 print("Unable to connect to compass.")
                 continue

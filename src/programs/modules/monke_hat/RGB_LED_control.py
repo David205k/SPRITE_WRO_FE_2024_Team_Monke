@@ -1,3 +1,6 @@
+import sys
+sys.path.append('/home/monke/WRO FE 2024 (Repository)/src/programs')
+
 import modules.monke_hat.Pwm_control as Pwm_control
 
 class LED:
