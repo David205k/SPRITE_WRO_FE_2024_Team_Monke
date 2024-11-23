@@ -1,1 +1,5 @@
 ~/home/monke/WRO FE 2024 (Repository)/src/old programs (deprecated)/supervised_learning_test
+/home/monke/WRO FE 2024 (Repository)/src/programs/__pycache__
+/home/monke/WRO FE 2024 (Repository)/src/programs/modules/monke_hat/__pycache__
+/home/monke/WRO FE 2024 (Repository)/src/programs/modules/object_detection/__pycache__
+*.pyc
