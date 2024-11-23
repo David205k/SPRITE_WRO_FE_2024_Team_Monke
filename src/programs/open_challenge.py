@@ -3,40 +3,30 @@ This program is to be run for the WRO Future Engineers Open Challenge.
 """
 
 from modules.monke_hat.Car import Car
-from programs.robot_config import *
+from robot_config import *
+import helper_functions
 
 from math import *
 from RPi import GPIO
 import time
-from gpiozero.pins.pigpio import PiGPIOFactory
-from collections import deque
-from picamera2 import Picamera2
 import numpy as np
 import cv2
 
 GPIO.setwarnings(False) # turn off warnings for pins
-GPIO.setmode(GPIO.BOARD) # pin name convention used is pin numbers on board
-factory = PiGPIOFactory()
 
 # initialise car object
 car = Car(
     camera=camera,
     servo=servo,
-    us_front=us4,
-    us_left=us2,
-    us_right=us5,
-    us_spare1=us1,
-    us_spare2=us3,
+    us_front=us_spare1,
+    us_left=us_left,
+    us_right=us_spare2,
+    us_spare1=us_front,
+    us_spare2=us_right,
     rgb=rgb,
     pb=pb,
     mDrvr=mDrvr
 )
-
-# global variables
-SPEED = 90
-MIN_WALL_DIST = 20 # cm
-ROBOT_WIDTH = 15 # cm
-ROBOT_LENGTH = 18.5 # cm
 
 can_turn = True
 

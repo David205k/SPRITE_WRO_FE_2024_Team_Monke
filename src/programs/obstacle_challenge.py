@@ -4,8 +4,8 @@ This program is to be run for the WRO Future Engineers Open Challenge.
 
 from modules.monke_hat.Car import Car
 from programs.robot_config import *
-from parameters import *
-from modules.Traffic_sign.Traffic_sign import Traffic_sign
+from programs.parameters_obs import *
+from modules.object_detection.Traffic_sign import Traffic_sign
 
 from math import *
 from RPi import GPIO
@@ -27,18 +27,7 @@ MIN_WALL_DIST = 30 # cm
 can_turn = False
 
 # initialise car object
-car = Car(
-    camera=camera,
-    servo=servo,
-    us_front=us4,
-    us_left=us2,
-    us_right=us5,
-    us_spare1=us1,
-    us_spare2=us3,
-    rgb=rgb,
-    pb=pb,
-    mDrvr=mDrvr
-)
+car = Car()
 
 green_sign = Traffic_sign(GREEN_SIGN)
 red_sign = Traffic_sign(RED_SIGN)
