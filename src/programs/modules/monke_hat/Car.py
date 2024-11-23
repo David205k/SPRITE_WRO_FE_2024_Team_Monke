@@ -1,6 +1,10 @@
 import sys
 sys.path.append('/home/monke/WRO FE 2024 (Repository)/src/programs')
 
+import cv2
+from picamera2 import Picamera2
+from math import *
+import time
 import RPi.GPIO as GPIO # use RPi library for controlling GPIO pins
 from gpiozero.pins.pigpio import PiGPIOFactory
 
@@ -8,107 +12,61 @@ from gpiozero import DistanceSensor
 from PiicoDev_VL53L1X import PiicoDev_VL53L1X
 
 import modules.monke_hat.Servo_control as MyServo
-import modules.monke_hat.Pwm_control as PWM
 import modules.monke_hat.RGB_LED_control as RGB
-# import modules.monke_hat.HMC5883L_control as HMC5883L
 import modules.monke_hat.LIS3MDL_control as LIS3MDL
 import modules.monke_hat.Tb6612fng_control as Tb6612fng
 import modules.monke_hat.PID as PID
-from parameters import * 
+import modules.monke_hat.VL53L1X_control as VL51L1X
+# import modules.monke_hat.HMC5883L_control as HMC5883L
 
-import cv2
-from picamera2 import Picamera2
-from math import *
+from robot_config import * 
+from helper_functions import *
+
 
 factory = PiGPIOFactory()
 
-GPIO.setwarnings(False) # turn off warnings for pins (if pins were previously used and not released properly there will be warnings)
-# GPIO.setmode(GPIO.BOARD) # pin name convention used is pin numbers on board
+GPIO.setmode(GPIO.BCM) 
 
 class Car: 
     """
-    Class for controlling team Monke's vehicle
-
-    Methods
-    -------
-    straight(speed: float)
-    stop()
-    start_cam()
+    Class for controlling team Monke's robot
     """
 
-    def __init__(self,
-                 camera: dict,
-                 servo: dict,
-                 us_front: dict,
-                 us_left: dict,
-                 us_right: dict,
-                 us_spare1: dict,
-                 us_spare2: dict,
-                 rgb: dict,
-                 pb: dict,
-                 mDrvr: dict,
-                 robot_params: dict,
-                 ):
-
-        self._camera = camera
-        self._servo = servo
-        self._us_front = us_front
-        self._us_left = us_left
-        self._us_right = us_right
-        self._us_spare1 = us_spare1
-        self._us_spare2 = us_spare2
-        self._rgb = rgb
-        self._pb = pb
-        self._mDrvr = mDrvr
-        self._robot_params = robot_params
+    def __init__(self):
 
         # initialise components  
         #---------------------------------------------------------------------------------------------
         # initialise compass 
         # while True:  # try until it connects
         #     try:
-        #         self.compass = HMC5883L.compass()
+        #         # self.compass = HMC5883L.compass()
         #     except OSError:
         #         print("Unable to connect to compass")
         #         continue 
         #     print("Connection to compass successful!")
         #     break 
-
         self.compass = LIS3MDL.compass()
 
         # initialise pushbutton
-        GPIO.setup(pb[1],GPIO.IN)        # two pins are connected to the start button as safeguard
+        # two pins are connected to the start button as safeguard
+        GPIO.setup(pb[1],GPIO.IN)        
         GPIO.setup(pb[2],GPIO.IN)
 
         self.servo = MyServo.Servo(servo["pin"], servo["start"], servo["offset"], servo["min"], servo["max"])
         self.motor = Tb6612fng.Motor(mDrvr["stby"], mDrvr["pwmA"], mDrvr["ai1"], mDrvr["ai2"]) 
         self.LED = RGB.LED(rgb["red"], rgb["blue"], rgb["green"])  
-
-        # initialise ultrasonic sensors
         self.us_front = DistanceSensor(echo=us_front["echo"], trigger=us_front["trig"], max_distance=3, pin_factory=factory)
-        
-        left_shut = 11
-        right_shut = 8
-        GPIO.setup(left_shut, GPIO.OUT)
-        GPIO.setup(right_shut, GPIO.OUT)
-        
-        GPIO.output(left_shut, GPIO.LOW)
-        GPIO.output(right_shut, GPIO.LOW)
-
-        GPIO.output(left_shut, GPIO.HIGH)
-        self.tof_left = PiicoDev_VL53L1X( bus=1, sda=27, scl=28, freq = 400_000 )
-        self.tof_left.change_addr(0x30)
-
-        GPIO.output(right_shut, GPIO.HIGH)
-        self.tof_right = PiicoDev_VL53L1X( bus=1, sda=27, scl=28, freq = 400_000)
-        self.tof_right.change_addr(0x31)
-
+        self.tof_manager = VL51L1X.tof_manager((tof_left, tof_right))
+         
         self.compass_direction = 0
         self.front_dist = 0
         self.left_dist = 0
         self.right_dist = 0
+        self.back_dist = 0
         self.side_diff = 0
         self.but_press = False
+
+        self.detection_zones = {}
 
         self.heading = 0
         self.driving_direction = "CW"
@@ -132,21 +90,71 @@ class Car:
         self.servo.write(0)
         self.motor.speed(0)
 
-    def turn(self, radius): 
+    def turn(self, radius):
         """
-        Drive car in circle with specified radius
+        Function to write servo angle for a specified turn radius.
+
+        Required wheel axis angle is derived using car's wheelbase, turn radius, and trigo.
+        Based on the car's steering mechanism, the required
+        servo position is calculated and written to the servo.
 
         Parameters
         ----------
-        radius: float  
-            Radius of circle in cm. (radius >= wheelbase)
-            +ve => ACW
-            -ve => CW
+        radius: float
+            +ve => turn ACW; -ve => turn CW
         """
-        if -WHEELBASE <= radius <= WHEELBASE:
-            radius = WHEELBASE * radius/abs(radius)
-        ang = round(degrees(asin(WHEELBASE/radius)))
-        self.servo.write(ang)
+
+        angled_link_ang_offset = radians(ANGLED_LINK_ANG_OFFSET)
+
+        sign = radius/abs(radius)
+        radius = max(abs(radius), WHEELBASE) # set minimum turn radius to wheelbase
+
+        theta = asin(WHEELBASE/radius)
+ 
+        link_ang = angled_link_ang_offset-theta
+
+        # circle c3
+        c3_x = ANGLED_LINK*cos(link_ang)
+        c3_y = ANGLED_LINK*sin(link_ang)
+
+        # circle c2
+        c2_x = 2*cos(angled_link_ang_offset)*ANGLED_LINK+YOKE
+        c2_y = 0
+
+        d = sqrt((c3_x-c2_x)**2+(c3_y-c2_y)**2)     # dist btw c2 and c3
+        c3_ang_to_c2 = atan(abs(c2_y-c3_y)/abs(c2_x-c3_x))  # angle of str line to x axis from centre of c2 to c3
+
+        x, y1, y2, alpha = get_circle_intersection(YOKE,ANGLED_LINK,d) 
+
+        yoke_ang = alpha - c3_ang_to_c2
+
+        mid_x_new = c3_x + (cos(yoke_ang)*YOKE)/2
+        mid_y_new = c3_y + sin(yoke_ang)*YOKE
+
+        delta_x = mid_x_new-SERVO_CTR[0]
+        delta_y = mid_y_new-SERVO_CTR[1]
+        delta_ang = atan(abs(delta_x)/abs(delta_y))
+
+        delta_ang = delta_ang*sign
+
+        self.servo.write(round(degrees(delta_ang))) 
+
+    # old robot turn function
+    # def turn(self, radius): 
+    #     """
+    #     Drive car in circle with specified radius
+
+    #     Parameters
+    #     ----------
+    #     radius: float  
+    #         Radius of circle in cm. (radius >= wheelbase)
+    #         +ve => ACW
+    #         -ve => CW
+    #     """
+    #     if -WHEELBASE <= radius <= WHEELBASE:
+    #         radius = WHEELBASE * radius/abs(radius)
+    #     ang = round(degrees(atan(WHEELBASE/(radius))))
+    #     self.servo.write(ang)
     
     i = 0
     def pid_straight(self, pid: tuple, verbose: bool = False) -> float:
@@ -176,7 +184,6 @@ class Car:
             ang_diff -= 360
 
         angle_adj = self.PID_controller.PID_control(ang_diff)
-        # self.servo.write(angle_adj)
 
         if verbose:
             print(angle_adj)
@@ -196,11 +203,13 @@ class Car:
     def start_cam(self):
         """Initialise the car's camera"""
         self.picam2 = Picamera2()
-        self.picam2.preview_configuration.main.size=self._camera["shape"] #(1920,1000)
+        self.picam2.preview_configuration.main.size=(1920,1000)
         self.picam2.preview_configuration.main.format = 'RGB888'
         self.picam2.start()
 
-    def get_frame(self, rotate: bool =True):
+    prev_time = 0
+    cur_time = 0
+    def get_frame(self, rotate: bool =True, fps: bool = True):
         """
         Reads video frames from video capture and returns manipulated frames.
 
@@ -208,13 +217,26 @@ class Car:
         ----------
         rotate: bool
             True: rotate frame 180 degs | False: no rotation
+        fps: bool
+            True: Show FPS on screen | False: Don't show FPS
         """
 
         self.frame = self.picam2.capture_array()
 
+        self.frame = cv2.resize(self.frame, camera["shape"]) # resize camera feed
+
         if rotate:
             self.frame = cv2.flip(self.frame, 0) # Flip vertically
             self.frame = cv2.flip(self.frame, 1) # Flip horizontally
+    
+        font, line = cv2.FONT_HERSHEY_SIMPLEX, cv2.LINE_AA
+
+        # get fps
+        self.prev_time = self.cur_time
+        self.cur_time = time.time()
+        fps = 1 / (self.cur_time-self.prev_time)
+        self.frame = cv2.putText(self.frame, f"fps: {fps:.2f}",
+                        (30,30), font, 1, (255,0,0), 1, line)
 
         return self.frame
 
@@ -234,7 +256,7 @@ class Car:
         if verbose:
             print("Button was pressed") 
 
-        if (GPIO.input(self._pb[1]) and GPIO.input(self._pb[2])):
+        if (GPIO.input(pb[1]) and GPIO.input(pb[2])):
             self.but_press = True
         else:
             self.but_press = False
@@ -251,12 +273,18 @@ class Car:
         verbose: bool
             True: print sensor vals | False: no output
         """
-
+        # print("E1")
         self.front_dist = round(self.us_front.distance*100)
-        self.left_dist = (self.tof_left.read() // 10) 
-        self.right_dist = (self.tof_right.read() // 10) 
+        # print("E")
+        self.left_dist, self.right_dist = self.tof_manager.read_sensors()
+        # print("E2")
+        # self.left_dist = (self.tof_left.read() // 10) 
+        # self.right_dist = (self.tof_right.read() // 10) 
+        # # self.back_dist = (self.tof_back.read() // 10) 
         self.side_diff = self.left_dist - self.right_dist
+        # print("E")
         self.compass_direction = round(self.compass.get_angle())
+
 
         if verbose:
             print(f"Front: {self.front_dist} Left: {self.left_dist} Right: {self.right_dist} Compass: {self.compass_direction}")
