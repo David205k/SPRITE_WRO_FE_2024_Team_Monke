@@ -37,7 +37,6 @@ import cv2
 from math import *
 import time
 import zmq
-
 import pickle
 
 # Create a ZeroMQ PUSH socket
@@ -195,7 +194,7 @@ def background_tasks():
             orange_line.detect_line(car.detection_zones["lines"])
 
             car_ang_from_normal = get_angular_diff(car.heading, car.compass_direction)
-            # print(car_ang_from_normal)
+
             green_sign.detect_sign(car.detection_zones["signs"], car_ang_from_normal)
             red_sign.detect_sign(car.detection_zones["signs"], car_ang_from_normal)
             # parking_lot.detect_sign(frame=car.frame)
@@ -211,7 +210,6 @@ def background_tasks():
     except Exception as e:
         print(f"Error in background tasks: {e}")
 
-
 def main():
 
     start = False
@@ -221,7 +219,7 @@ def main():
     turn_time = 0
 
     print("Boot complete. \nPress the button to run.")  
-    car.LED.rgb(50,50,50)
+    car.LED.rgb(255,255,255)
     while True:
 
         # End the round
@@ -232,9 +230,6 @@ def main():
 
         if car.but_press:
             start = True
-            can_turn = True
-            no_of_turns = 0
-            turn_time = 0
 
             car.reset()  # reset all variables
 
@@ -242,72 +237,61 @@ def main():
 
             print("Program started.")
             print("Running...")
-            car.LED.rgb(100,100,100)
             time.sleep(0.2)
 
         if start:
             # Main code start here
-            car.LED.rgb(10,50,10)
 
-            diff = car.left_dist - car.right_dist
-            
+            car.LED.rgb(255,0,255) # pink
             # if red_sign.have_sign:
             #     avoid_sign(red_sign, "right")
             # elif green_sign.have_sign:
             #     avoid_sign(green_sign, "left")
             # el
-            if (car.front_dist <= turn_dist-FRONT_2_TOF_LEN and can_turn and (car.left_dist>=100 or car.right_dist>=100)):
+            if (car.front_dist <= turn_dist and can_turn and 
+                (car.left_dist>=100 or car.right_dist>=100)):
                 print(f"Turning. Front: {car.front_dist:.0f} Left: {car.left_dist:.0f} Right {car.left_dist:.0f}")
-
-                turn_time = time.time()
+                
                 no_of_turns += 1
                 can_turn = False
-                turn_radius = MIN_WALL_DIST
+                turn_radius = 20
 
                 if no_of_turns == 1:
-                    # if orange_line.have_line and blue_line.have_line and abs(blue_line.angle-orange_line.angle) > 10:
-                    #     print("blue line: ", blue_line.angle)
-                    #     print("orange line: ", orange_line.angle)
-                    #     if orange_line.angle > blue_line.angle:
-                    #         car.driving_direction = "ACW"
-                    #     else:
-                    #         car.driving_direction = "CW"
-                    # else:
-                        car.driving_direction = "ACW" if diff >= 0 else "CW"
-                        print(f"Driving_direction: {car.driving_direction}")
+                    car.driving_direction = "ACW" if car.left_dist >= car.right_dist else "CW"
+                    print(f"Driving_direction: {car.driving_direction}")
 
                 # turn back to original position
                 if no_of_turns == 12:
                     turn_radius = start_pos[1] if car.driving_direction == "CW" else start_pos[2]
 
                 if car.driving_direction == "CW":
-                    car.LED.rgb(255,100,5)
+                    car.LED.rgb(255,150,0) # orange
                     car.heading += 90 
                     turn_radius = -turn_radius
                 elif car.driving_direction == "ACW":
-                    car.LED.rgb(5,100,255)
+                    car.LED.rgb(0,0,255) # blue
                     car.heading -= 90 
 
-                arc(turn_radius, car.heading, SPEED, lower_tol=-3, upper_tol=3)
+                arc(turn_radius, car.heading, SPEED, lower_tol=-10, upper_tol=0)
 
             # elif ((car.left_dist <= 10 and car.driving_direction == "ACW") or 
             # (car.right_dist <= 10 and car.driving_direction == "CW") and car.front_dist >= turn_dist):
-            #     car.LED.rgb(100,100,100)
+            #     car.LED.rgb(230,200,100) # yellow
 
             #     y = 40
             #     if car.driving_direction == "ACW":
-            #         x = 10 - car.left_dist 
+            #         x = 20 - car.left_dist 
             #         r = -20 
             #     else:
-            #         x = 10 - car.right_dist
+            #         x = 20 - car.right_dist
             #         r = 20 
             #     curve_to_point(r,x,y)
 
             else:
                 car.motor.speed(SPEED)
-                car.servo.write(car.pid_straight((1,0,0)))
+                car.servo.write(car.pid_straight((2,0,0)))
 
-                if time.time() - turn_time >= 5 and car.front_dist >= 70:
+                if car.front_dist >= 80 and time.time() - turn_time >= 5:
                     can_turn = True
 
         else:

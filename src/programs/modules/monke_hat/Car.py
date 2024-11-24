@@ -110,7 +110,6 @@ class Car:
         radius = max(abs(radius), WHEELBASE) # set minimum turn radius to wheelbase
 
         theta = asin(WHEELBASE/radius)
- 
         link_ang = angled_link_ang_offset-theta
 
         # circle c3
@@ -118,7 +117,7 @@ class Car:
         c3_y = ANGLED_LINK*sin(link_ang)
 
         # circle c2
-        c2_x = 2*cos(angled_link_ang_offset)*ANGLED_LINK+YOKE
+        c2_x = DIST_BTW_PIVOTS
         c2_y = 0
 
         d = sqrt((c3_x-c2_x)**2+(c3_y-c2_y)**2)     # dist btw c2 and c3
@@ -136,9 +135,7 @@ class Car:
         delta_ang = atan(abs(delta_x)/abs(delta_y))
 
         delta_ang = delta_ang*sign
-
-        self.servo.write(round(degrees(delta_ang))) 
-
+        self.servo.write(round(degrees(delta_ang)))     
     # old robot turn function
     # def turn(self, radius): 
     #     """

@@ -13,18 +13,8 @@ import board, adafruit_lis3mdl
 MAX_SPEED = 40 # maximum motor speed
 MAX_ANGLE = 45 # maximum motor angle
 
-car = Car(
-    camera=camera,
-    servo=servo,
-    us_front=us_front,
-    us_left=us_left,
-    us_right=us_spare2,
-    us_spare1=us_spare1,
-    us_spare2=us_right,
-    rgb=rgb,
-    pb=pb,
-    mDrvr=mDrvr
-)
+car = Car()
+
 
 # Gather calibration data
 def gather_calibration_data(_sensor, samples=100):

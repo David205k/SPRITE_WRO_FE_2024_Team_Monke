@@ -2,7 +2,7 @@ from robot_config import camera
 
 # global variables
 SPEED = 20              # in %
-turn_dist = 100
+turn_dist = 50
 MIN_WALL_DIST = 30      # cm
 TOTAL_TURNS = 12        # total number of corner turns
 

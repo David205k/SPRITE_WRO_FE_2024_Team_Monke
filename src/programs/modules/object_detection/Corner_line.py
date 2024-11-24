@@ -38,7 +38,7 @@ class Line:
                 x1, y1, x2, y2 = line[0]
                 try:
                     angle = degrees(abs(atan((y2-y1)/(x2-x1))))
-                except ValueError:
+                except ZeroDivisionError:
                     angle = 0
                 if angle > maxAng:
                     maxAng = angle
