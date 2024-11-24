@@ -170,7 +170,7 @@ def show_visuals():
     # cv2.imshow("Orange mask", orange_line.mask) 
     # cv2.imshow("Blue mask", orange_line.mask) 
     # cv2.imshow("Parking Lot", parking_lot.mask)
-    # cv2.imshow("Red", red_sign.mask)
+    cv2.imshow("Red", red_sign.mask)
     # cv2.imshow("Green", green_sign.mask)
 
 def setup():
@@ -179,7 +179,7 @@ def setup():
 def background_tasks():
     try:
         while True:
-            car.read_sensors(True)
+            car.read_sensors()
             car.read_button()
             car.compass.set_home(car.read_button())
 
@@ -199,7 +199,7 @@ def background_tasks():
             red_sign.detect_sign(car.detection_zones["signs"], car_ang_from_normal)
             # parking_lot.detect_sign(frame=car.frame)
 
-            # show_visuals()
+            show_visuals()
 
             # socket.send(pickle.dumps({"front":car.front_dist, "left":car.left_dist, "right":car.right_dist,"compass": car.compass_direction, "heading": car.heading}))
 
@@ -219,7 +219,7 @@ def main():
     turn_time = 0
 
     print("Boot complete. \nPress the button to run.")  
-    car.LED.rgb(255,255,255)
+    
     while True:
 
         # End the round
@@ -237,18 +237,18 @@ def main():
 
             print("Program started.")
             print("Running...")
+            car.LED.rgb(100,100,100)
             time.sleep(0.2)
 
         if start:
             # Main code start here
 
             car.LED.rgb(255,0,255) # pink
-            # if red_sign.have_sign:
-            #     avoid_sign(red_sign, "right")
-            # elif green_sign.have_sign:
-            #     avoid_sign(green_sign, "left")
-            # el
-            if (car.front_dist <= turn_dist and can_turn and 
+            if red_sign.have_sign:
+                avoid_sign(red_sign, "right")
+            elif green_sign.have_sign:
+                avoid_sign(green_sign, "left")
+            elif (car.front_dist <= turn_dist and can_turn and 
                 (car.left_dist>=100 or car.right_dist>=100)):
                 print(f"Turning. Front: {car.front_dist:.0f} Left: {car.left_dist:.0f} Right {car.left_dist:.0f}")
                 

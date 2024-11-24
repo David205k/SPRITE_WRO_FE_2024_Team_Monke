@@ -12,7 +12,7 @@ GREEN_SIGN = {"lower":(45, 100, 30), "upper":(80, 255, 200),
               "height":9.5, "width":5, 
               "type": "green", "bbox colour":(0,255,0), 
               "min h":40, "min w":20}
-RED_SIGN = {"lower":(0, 100, 50), "upper":(5, 255, 255), 
+RED_SIGN = {"lower":(0, 100, 50), "upper":(3, 255, 255), 
              "lower2":(175, 100, 50), "upper2":(179, 255, 255),
              "height":9.5, "width":5, "type": "red", "bbox colour":(0,0,255),  
              "min h":40, "min w":20}

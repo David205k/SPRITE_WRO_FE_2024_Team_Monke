@@ -11,18 +11,7 @@ import numpy as np
 import cv2
 
 # objects
-car = Car(
-    camera=camera,
-    servo=servo,
-    us_front=us_front,
-    us_left=us_left,
-    us_right=us_spare2,
-    us_spare1=us_spare1,
-    us_spare2=us_right,
-    rgb=rgb,
-    pb=pb,
-    mDrvr=mDrvr
-)
+car = Car()
 
 def reset_driving():
     #reset servo angle and motor speed to default
@@ -30,9 +19,10 @@ def reset_driving():
     car.motor.speed(SPEED)
 
 def drive_dist(dist, speed=SPEED):
+    # drive a specified distance for a certain speed
     car.motor.speed(speed)
     car.servo.write(car.pid_straight((1,0,0)))
-    time.sleep(dist/(abs(speed)/100 * MAX_SPEED_CMS))
+    time.sleep(dist/(abs(speed)/20 * MAX_SPEED_CMS))
 
     reset_driving()
 
@@ -44,8 +34,12 @@ def arc(radius:float, heading:float, speed:float=SPEED, tol:float = None, lower_
         upper = car.heading+tol
         lower = car.heading-tol
     else:
-        upper = car.heading+upper_tol
-        lower = car.heading+lower_tol
+        if radius >= 0: # ACW
+            upper = car.heading-lower_tol
+            lower = car.heading-upper_tol
+        else: # CW
+            upper = car.heading+upper_tol
+            lower = car.heading+lower_tol         
 
     while not is_ang_in_range(car.compass_direction, lower, upper):
         car.turn(radius)
@@ -72,7 +66,7 @@ def curve_to_point(radius:float, x:float, y:float):
     theta, tan_dist = calculate_route(radius,x,y)
     print(f"Curve to point, theta: {theta}, tan dist: {tan_dist}")
 
-    tol = 5
+    tol = 3
     # first arc
     arc(radius,heading=confine_ang(car.heading+theta),tol=tol)
 
@@ -84,22 +78,7 @@ def curve_to_point(radius:float, x:float, y:float):
 
     return theta, tan_dist
 
-prev_time = 0
-cur_time = 0
 def show_visuals():
-
-    global prev_time
-    global cur_time
-
-    font, line = cv2.FONT_HERSHEY_SIMPLEX, cv2.LINE_AA
-
-    # get fps
-    prev_time = cur_time
-    cur_time = time.time()
-    fps = 1 / (cur_time-prev_time)
-    car.frame = cv2.putText(car.frame, f"fps: {fps:.2f}",
-                    (30,30), font, 1, (255,0,0), 1, line)
-    
     cv2.imshow("Camera", car.frame)
 
 def setup():
@@ -114,7 +93,6 @@ def background():
             car.compass.set_home(car.read_button())
 
             # car.get_frame()
-
             # show_visuals()
             
             if cv2.waitKey(1) & 0xFF == ord('q'): #break out of loop if 'q' is pressed
@@ -129,7 +107,7 @@ def main():
     can_turn = True
     no_of_turns = 0
     start_pos = ()
-    car.driving_direction = "CW"
+    turn_time = 0
 
     print("Boot complete. \nPress the button to run.")  
 
@@ -156,11 +134,10 @@ def main():
 
         if start:
             # Main code start here
-            car.LED.rgb(0,200,0)
+            car.LED.rgb(255,0,255) # pink
 
             if (car.front_dist <= 80 and can_turn and
-                  ((car.left_dist >= 100 and car.driving_direction == "ACW") or
-                   (car.right_dist >= 100 and car.driving_direction == "CW"))
+                  (car.left_dist>=100 or car.right_dist>=100)
                 ):
                 print(f"Turning. Front: {car.front_dist:.0f} Left: {car.left_dist:.0f} Right {car.left_dist:.0f}")
 
@@ -170,12 +147,9 @@ def main():
                 sign = 1 if car.driving_direction == "CW" else -1
 
                 car.heading += 90*sign
-                radius = -11*sign
+                radius = -20*sign
 
-                car.heading = confine_ang(car.heading)
-
-                arc(radius,car.heading, upper_tol=10, lower_tol=-15)
-
+                arc(radius, car.heading, SPEED, lower_tol=-10, upper_tol=0)
             else:
 
                 car.motor.speed(SPEED)

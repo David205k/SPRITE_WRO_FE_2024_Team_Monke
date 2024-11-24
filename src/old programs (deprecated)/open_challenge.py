@@ -15,18 +15,7 @@ import cv2
 GPIO.setwarnings(False) # turn off warnings for pins
 
 # initialise car object
-car = Car(
-    camera=camera,
-    servo=servo,
-    us_front=us_spare1,
-    us_left=us_left,
-    us_right=us_spare2,
-    us_spare1=us_front,
-    us_spare2=us_right,
-    rgb=rgb,
-    pb=pb,
-    mDrvr=mDrvr
-)
+car = Car()
 
 can_turn = True
 
