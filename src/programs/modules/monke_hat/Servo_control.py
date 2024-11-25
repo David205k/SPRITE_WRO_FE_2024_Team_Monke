@@ -53,5 +53,7 @@ class Servo:
         """
 
         angle = max(min(angle+self.offset, self.maxAng), self.minAng) # limit angle between minAng and maxAng
-        self.servo.angle = round(angle) 
+        angle = -round(angle)
+        # print(angle) 
+        self.servo.angle = angle
     

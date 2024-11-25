@@ -18,7 +18,7 @@ from modules.monke_hat.Car import Car
 from robot_config import *
 
 GPIO.setwarnings(False) # turn off warnings for pins (if pins were previously used and not released properly there will be warnings)
-GPIO.setmode(GPIO.BOARD) # pin name convention used is pin numbers on board
+# GPIO.setmode(GPIO.BOARD) # pin name convention used is pin numbers on board
 
 # Initialize pygame and the joystick
 pygame.init()
@@ -31,16 +31,6 @@ print("Controller name:", joystick.get_name())
 
 # initialise car object
 car = Car(
-    camera=camera,
-    servo=servo,
-    us_front=us_spare1,
-    us_left=us_left,
-    us_right=us_spare2,
-    us_spare1=us_front,
-    us_spare2=us_right,
-    rgb=rgb,
-    pb=pb,
-    mDrvr=mDrvr
 )
 
 
@@ -154,14 +144,14 @@ if __name__ == "__main__":
             if record:
 
                 car.LED.rgb(100, 0, 0)
-
+                print("Started recording")
                 if (time.time() - prev_time) >= 0.1:
                     x, y, z = read_magnetometer()
                     x_readings.append(x)
                     y_readings.append(y)
                     z_readings.append(z)
                     prev_time = time.time()
-
+                print("finished recording")
             else:
                 car.LED.rgb(0,100,0)
 
@@ -180,8 +170,8 @@ if __name__ == "__main__":
 
 
         # Uncomment to print to readings excel sheet
-        # print("Storing calibration data in Excel...")
-        # save_to_csv(x_readings, y_readings, z_readings)
+        print("Storing calibration data in Excel...")
+        save_to_csv(x_readings, y_readings, z_readings)
 
         car.LED.off()
         joystick.quit()

@@ -24,8 +24,10 @@ class compass:
 
     # area specific alterations
     DECLINATION_ANGLE = 0.22
-    X_OFFSET, Y_OFFSET, Z_OFFSET = -28.0, -138.0, 0
-    X_SCALE, Y_SCALE, Z_SCALE = 511.0, 498.0, 1
+    # X_OFFSET, Y_OFFSET, Z_OFFSET = -28.0, -138.0, 0
+    # X_SCALE, Y_SCALE, Z_SCALE = 511.0, 498.0, 1
+    X_OFFSET, Y_OFFSET, Z_OFFSET = -62.5, -257.0, 0.0
+    X_SCALE, Y_SCALE, Z_SCALE = 485.5, 480.0, 2.0
     bus = None
 
     def __init__(self, addr=0x1E):

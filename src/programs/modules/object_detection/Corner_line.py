@@ -3,7 +3,7 @@ import cv2
 
 class Line:
 
-    def __init__(self, line_params):
+    def __init__(self, line_params, sign_zone=None):
 
         self.lower = line_params["lower"]
         self.upper = line_params["upper"]
@@ -19,6 +19,9 @@ class Line:
             self.upper2 = line_params["upper2"]  
         except KeyError:
             self.have_second_range = False
+
+        if sign_zone is not None:
+            self.zone = sign_zone
 
     def detect_line(self,frame):
 
@@ -54,8 +57,9 @@ class Line:
             return self.have_line
 
     def draw_line(self, frame):
+        zone = self.zone
         if self.have_line:
             x1, y1, x2, y2 = self.line  # Extract endpoints of the line
-            cv2.line(frame, (x1, y1), (x2, y2), self.colour, 2)  # Draw line
+            cv2.line(frame, (x1+zone[0], y1+zone[1]), (x2+zone[0], y2+zone[1]), self.colour, 2)  # Draw line
         return frame
     

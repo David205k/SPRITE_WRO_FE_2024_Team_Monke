@@ -5,12 +5,14 @@
 from math import atan2, degrees
 import board
 import adafruit_lis3mdl
+import csv
 
-class compass:
+class Compass:
 
     # compass offset and scale values (specific to envrionment and module)
-    X_OFFSET, Y_OFFSET, Z_OFFSET = -23.42882198187664, 24.269219526454254, 6.248173048816135
-    X_SCALE, Y_SCALE, Z_SCALE = 45.834551300789244, 46.616486407483194, 12.372113417129494
+
+    X_OFFSET, Y_OFFSET, Z_OFFSET = -1239.5, -670.5, -1536.5
+    X_SCALE, Y_SCALE, Z_SCALE = 3362.5, 3182.5, 762.5
 
     def __init__(self):
 
@@ -19,6 +21,33 @@ class compass:
         self.lis3mdl = adafruit_lis3mdl.LIS3MDL(i2c)
 
         self.startPos = 0
+
+    def calculate_offsets(self, x_readings, y_readings, z_readings):
+        x_offset = (max(x_readings) + min(x_readings)) / 2
+        y_offset = (max(y_readings) + min(y_readings)) / 2
+        z_offset = (max(z_readings) + min(z_readings)) / 2
+        
+        x_scale = (max(x_readings) - min(x_readings)) / 2
+        y_scale = (max(y_readings) - min(y_readings)) / 2
+        z_scale = (max(z_readings) - min(z_readings)) / 2
+        
+        print(f"X_OFFSET, Y_OFFSET, Z_OFFSET = {x_offset}, {y_offset}, {z_offset}")
+        print(f"X_SCALE, Y_SCALE, Z_SCALE = {x_scale}, {y_scale}, {z_scale}")
+
+        return x_offset, y_offset, z_offset, x_scale, y_scale, z_scale
+
+    # Function to save calibration data to CSV
+    def save_to_csv(self, x_readings, y_readings, z_readings, filename="calibration_data.csv"):
+        with open(filename, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            
+            writer.writerow(["X", "Y", "Z"]) # Write headers
+            
+            for x, y, z in zip(x_readings, y_readings, z_readings): # Write data
+                writer.writerow([x, y, z])
+
+        print("Storing calibration data in Excel...")
+        print(f"Calibration data saved to {filename}")
 
     def apply_calibration(self, raw_x, raw_y):
         """
@@ -33,8 +62,9 @@ class compass:
     def get_angle(self, relative=True):
         while True:
             try:
+                # raw_magnet_x, raw_magnet_y, _ = self.lis3mdl._raw_mag_data
                 magnet_x, magnet_y, _ = self.lis3mdl.magnetic
-                magnet_x, magnet_y = self.apply_calibration(magnet_x, magnet_y)
+                # magnet_x, magnet_y = self.apply_calibration(raw_magnet_x, raw_magnet_y)
             except OSError:
                 print("Unable to connect to compass.")
                 continue

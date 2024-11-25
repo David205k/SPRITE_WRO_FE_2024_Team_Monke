@@ -3,6 +3,7 @@ sys.path.append("/home/monke/WRO FE 2024 (Repository)/src/programs")
 
 import cv2
 from math import * 
+import numpy as np
 from robot_config import camera
 
 CAM_HEIGHT = camera["shape"][1]
@@ -13,7 +14,7 @@ VER_FOV = camera["vertical FOV"]
 
 class Traffic_sign:
 
-    def __init__(self, sign_params):
+    def __init__(self, sign_params, sign_zone=None):
         self.lower_bound = sign_params["lower"]
         self.upper_bound = sign_params["upper"]
         self.width = sign_params["width"]
@@ -32,6 +33,9 @@ class Traffic_sign:
             self.upper_bound2 = sign_params["upper2"]
         except KeyError:
             self.have_second_range = False
+
+        if sign_zone is not None:
+            self.zone = sign_zone
 
         self.x1 = -999
         self.y1 = -999
@@ -62,7 +66,7 @@ class Traffic_sign:
 
         return largest_bbox
 
-    def detect_sign(self, frame, car_ang_from_heading):
+    def detect_sign(self, frame, car_ang_from_heading=0):
         
         hsvImage = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)   # Convert image from BGR to HSV
         mask = cv2.inRange(hsvImage, self.lower_bound, self.upper_bound)  # Create mask for the color
@@ -82,7 +86,7 @@ class Traffic_sign:
     
             map_y = (self.height/h) * camera["focal length"] # get distance from object
             map_x = ((x - MIDDLE) / (CAM_WIDTH/2)) * (tan(radians(HOR_FOV/2))*map_y) # get lateral distance relative to center
-
+            # print(f"Actual: {(map_x, map_y)}")
             # map_x, map_y = self.apply_orientation_to_obj_position(car_ang_from_heading, map_x, map_y)
 
             self.x1 = x1
@@ -110,16 +114,17 @@ class Traffic_sign:
             self.map_y = -999
             self.have_sign = False
 
-    # def apply_orientation_to_obj_position(self, car_ang_from_heading_rad, map_x, map_y):
+    def apply_orientation_to_obj_position(self, car_ang_from_heading_rad, map_x, map_y):
         
-    #     car_ang_from_heading_rad = radians(car_ang_from_heading_rad)
-    #     hypo = sqrt(map_x**2 + map_y**2)
-    #     theta_rad = car_ang_from_heading_rad-atan2(map_x,map_y) if car_ang_from_heading_rad >= 0 else car_ang_from_heading_rad+atan2(map_x,map_y)
+        theta = radians(car_ang_from_heading_rad)
 
-    #     act_x = -sin(theta_rad)*hypo
-    #     act_y = cos(theta_rad)*hypo
+        x_y = np.array([[map_x],
+                         [map_y]])
+        transform_matrix = np.array([[cos(theta),-sin(theta)],
+                                    [sin(theta),cos(theta)]])
 
-    #     return act_x, act_y
+        x_y_real = np.matmul(transform_matrix, x_y)    
+        return map(float, x_y_real)
 
     def draw_bbox(self, frame):
 
@@ -132,8 +137,9 @@ class Traffic_sign:
                     "pink": (200,camera["shape"][1] - 50)   # middle
                     }
 
+        zone = self.zone
         if self.have_sign:
-            frame = cv2.rectangle(frame, (self.x1, self.y1), (self.x2, self.y2), self.bbox_colour, 1)
+            frame = cv2.rectangle(frame, (self.x1+zone[0], self.y1+zone[1]), (self.x2+zone[0], self.y2+zone[1]), self.bbox_colour, 1)
             frame = cv2.putText(frame, f"({self.map_x:.2f}, {self.map_y:.2f})",
                                     text_pos[self.type], font, 1, self.bbox_colour, 1, line) 
 

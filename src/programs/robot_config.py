@@ -36,7 +36,7 @@ May consider using a yaml file instead.
 camera={"shape": (640,480), "vertical FOV": 67, "horizontal FOV": 102, "focal length": 390}
 
 # gpio pin convention
-servo={"pin":5,"start":0, "offset":9, "min":-42, "max":60} # pin 29 (physical)
+servo={"pin":5,"start":0, "offset":-15, "min":-50, "max":50} # pin 29 (physical)
 us_front={"trig":17, "echo":4} # 11, 7 (physical)
 us_left={"trig":22, "echo":27} # 15, 13 (physical)
 us_right={"trig":9, "echo":10} # 21, 19 (physical)

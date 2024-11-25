@@ -35,8 +35,8 @@ def arc(radius:float, heading:float, speed:float=SPEED, tol:float = None, lower_
         lower = car.heading-tol
     else:
         if radius >= 0: # ACW
-            upper = car.heading-lower_tol
-            lower = car.heading-upper_tol
+            upper = car.heading-upper_tol
+            lower = car.heading-lower_tol
         else: # CW
             upper = car.heading+upper_tol
             lower = car.heading+lower_tol         
@@ -88,7 +88,7 @@ def background():
 
     try:
         while True:
-            car.read_sensors(True)
+            car.read_sensors()
             car.read_button()
             car.compass.set_home(car.read_button())
 
@@ -118,7 +118,7 @@ def main():
         and (car.front_dist <= start_pos[0]+10)): # stop at start position
             start = False
             print("Run finished.")
-            break
+            
 
         if car.but_press:
             start = True
@@ -139,22 +139,32 @@ def main():
             if (car.front_dist <= 80 and can_turn and
                   (car.left_dist>=100 or car.right_dist>=100)
                 ):
+                car.LED.rgb(0,50,0) # white
                 print(f"Turning. Front: {car.front_dist:.0f} Left: {car.left_dist:.0f} Right {car.left_dist:.0f}")
 
                 no_of_turns += 1
                 can_turn = False
+                print(f"no of turns: {no_of_turns}")
+                if no_of_turns == 1:
+                    car.driving_direction = "ACW" if car.left_dist >= car.right_dist else "CW"
+                    print(f"Driving_direction: {car.driving_direction}")
 
                 sign = 1 if car.driving_direction == "CW" else -1
 
                 car.heading += 90*sign
                 radius = -20*sign
 
-                arc(radius, car.heading, SPEED, lower_tol=-10, upper_tol=0)
+                arc(radius, car.heading, SPEED, lower_tol=5, upper_tol=5)
             else:
 
                 car.motor.speed(SPEED)
-                car.servo.write(car.pid_straight((1,0,0)))
-
+                car.servo.write(car.pid_straight((2.5,0,0)))
+                
+                #if (car.left_dist<=15):
+                #    curve_to_point(-30, 10, 20)
+                #if (car.right_dist<=15):
+                #    curve_to_point(30,-10, 10)
+                #curve_to_point(5,5,5)
                 if car.front_dist >= 130:
                     can_turn = True
 

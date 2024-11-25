@@ -27,6 +27,7 @@ Key Notes:
 from modules.object_detection.Traffic_sign import Traffic_sign
 from modules.object_detection.Corner_line import Line
 from modules.monke_hat.Car import Car
+from modules.monke_hat.PID import PID
 from parameters_obs import *
 from robot_config import *
 from helper_functions import *
@@ -47,12 +48,12 @@ socket.bind("tcp://127.0.0.1:5555")  # Bind to a port
 # declare objects
 car = Car()
 
-green_sign = Traffic_sign(GREEN_SIGN)
-red_sign = Traffic_sign(RED_SIGN)
-parking_lot = Traffic_sign(PARKING_LOT)
+green_sign = Traffic_sign(GREEN_SIGN, SIGN_ZONE)
+red_sign = Traffic_sign(RED_SIGN, SIGN_ZONE)
+parking_lot = Traffic_sign(PARKING_LOT, SIGN_ZONE)
 
-blue_line = Line(BLUE_LINE)
-orange_line = Line(ORANGE_LINE)
+blue_line = Line(BLUE_LINE, LINE_ZONE)
+orange_line = Line(ORANGE_LINE, LINE_ZONE)
 
 def reset_driving():
     #reset servo angle and motor speed to default
@@ -126,30 +127,40 @@ def avoid_sign(sign:Traffic_sign, pass_on_side:str):
     
     side = 1 if pass_on_side == "left" else -1
 
-    if (sign.have_sign and x_within_dist
-        and 35 <= sign.map_y <= 100):
-
+    if (x_within_dist and 35 <= sign.map_y <= 100 and sign.have_sign):
+    
         print(f"Passing on {pass_on_side}. {sign.type} at {sign.map_x:.2f},{sign.map_y:.2f}")
         b,g,r = sign.bbox_colour
         car.LED.rgb(r,g,b)
 
-        buffer = 3
-        x = sign.map_x + (CAR_WIDTH/2 + sign.width/2 + buffer) * -side
-        y = sign.map_y
-        r = 20
-        r = r * side
+        # buffer = 3
+        # x = sign.map_x + (CAR_WIDTH/2 + sign.width/2 + buffer) * -side
+        # y = sign.map_y
+        # r = 20
+        # r = r * side
+        # print(f"Moving to {(x,y)}")
         
-        print(f"Moving to {(x,y)}")
-
+        while ((sign.map_x <= CAR_WIDTH/2 and pass_on_side == "left") or
+        (sign.map_x >= -CAR_WIDTH/2 and pass_on_side == "right") and sign.have_sign):
+            error = CAR_WIDTH/2 - sign.map_x if pass_on_side == "left" else -CAR_WIDTH/2 - sign.map_x
+            Kp = 3
+            ang = (error / 100) * 45 * Kp
+            car.servo.write(ang)
+            car.motor.speed(SPEED)
+        print("avoided")
+        car.servo.write(0)
+        car.motor.speed(SPEED)
         # avoid object
-        curve_to_point(r, x, y)
+        # curve_to_point(r, x, y)
 
-        # drive straight pass the object
-        drive_dist(green_sign.width+5)
+        # # drive straight pass the object
+        # drive_dist(green_sign.width+5)
         
-        # curve back to middle
-        arc(-20*side, confine_ang(car.heading+90*side), tol=5)
-        arc(20*side, confine_ang(car.heading-90*side), tol=5)
+        # # # curve back to middle
+        # if no_of_turns == 8:
+        #     arc(-25*side, confine_ang(car.heading+180*side), tol=5)
+        # arc(-20*side, confine_ang(car.heading+90*side), tol=5)
+        # arc(20*side, confine_ang(car.heading-90*side), tol=5)
 
 def show_visuals():
     
@@ -170,7 +181,7 @@ def show_visuals():
     # cv2.imshow("Orange mask", orange_line.mask) 
     # cv2.imshow("Blue mask", orange_line.mask) 
     # cv2.imshow("Parking Lot", parking_lot.mask)
-    cv2.imshow("Red", red_sign.mask)
+    # cv2.imshow("Red", red_sign.mask)
     # cv2.imshow("Green", green_sign.mask)
 
 def setup():
@@ -193,13 +204,13 @@ def background_tasks():
             blue_line.detect_line(car.detection_zones["lines"])
             orange_line.detect_line(car.detection_zones["lines"])
 
-            car_ang_from_normal = get_angular_diff(car.heading, car.compass_direction)
+            ang_offset = get_angular_diff(car.heading, car.compass_direction)
 
-            green_sign.detect_sign(car.detection_zones["signs"], car_ang_from_normal)
-            red_sign.detect_sign(car.detection_zones["signs"], car_ang_from_normal)
+            green_sign.detect_sign(car.detection_zones["signs"], ang_offset)
+            red_sign.detect_sign(car.detection_zones["signs"], ang_offset)
             # parking_lot.detect_sign(frame=car.frame)
 
-            show_visuals()
+            # show_visuals()
 
             # socket.send(pickle.dumps({"front":car.front_dist, "left":car.left_dist, "right":car.right_dist,"compass": car.compass_direction, "heading": car.heading}))
 
@@ -245,11 +256,13 @@ def main():
 
             car.LED.rgb(255,0,255) # pink
             if red_sign.have_sign:
+                print("Avoiding red")
                 avoid_sign(red_sign, "right")
             elif green_sign.have_sign:
+                print("Avoiding green")
                 avoid_sign(green_sign, "left")
             elif (car.front_dist <= turn_dist and can_turn and 
-                (car.left_dist>=100 or car.right_dist>=100)):
+                (car.left_dist>=150 or car.right_dist>=150) and (not red_sign.have_sign) and (not green_sign.have_sign) and (is_ang_in_range(car.compass_direction, car.heading-5, car.heading+5))):
                 print(f"Turning. Front: {car.front_dist:.0f} Left: {car.left_dist:.0f} Right {car.left_dist:.0f}")
                 
                 no_of_turns += 1
@@ -272,7 +285,7 @@ def main():
                     car.LED.rgb(0,0,255) # blue
                     car.heading -= 90 
 
-                arc(turn_radius, car.heading, SPEED, lower_tol=-10, upper_tol=0)
+                arc(turn_radius, car.heading, SPEED, lower_tol=-3, upper_tol=3)
 
             # elif ((car.left_dist <= 10 and car.driving_direction == "ACW") or 
             # (car.right_dist <= 10 and car.driving_direction == "CW") and car.front_dist >= turn_dist):
@@ -291,9 +304,8 @@ def main():
                 car.motor.speed(SPEED)
                 car.servo.write(car.pid_straight((2,0,0)))
 
-                if car.front_dist >= 80 and time.time() - turn_time >= 5:
+                if car.front_dist >= 80 and time.time() - turn_time >= 10:
                     can_turn = True
-
         else:
             car.inactive()
 
@@ -308,7 +320,7 @@ if __name__=="__main__":
         except Exception as E:
             print(f"Error in main: {E}")
     except KeyboardInterrupt:
-        pass
+        print("Stopping program")
     finally: 
         # clean up any used resources (pre-caution)
         car.inactive()

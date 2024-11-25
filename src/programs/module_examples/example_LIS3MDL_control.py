@@ -1,13 +1,13 @@
 import sys
 sys.path.append("/home/monke/WRO FE 2024 (Repository)/src/programs")
-from modules.monke_hat.LIS3MDL_control import compass
+from modules.monke_hat.LIS3MDL_control import Compass
 from RPi import GPIO
 
 GPIO.setwarnings(False)
 
 def main():
 
-    myCompass = compass()
+    myCompass = Compass()
 
     pb1 = 23
     pb2 = 24

@@ -17,7 +17,7 @@ import modules.monke_hat.LIS3MDL_control as LIS3MDL
 import modules.monke_hat.Tb6612fng_control as Tb6612fng
 import modules.monke_hat.PID as PID
 import modules.monke_hat.VL53L1X_control as VL51L1X
-# import modules.monke_hat.HMC5883L_control as HMC5883L
+import modules.monke_hat.HMC5883L_control as HMC5883L
 
 from robot_config import * 
 from helper_functions import *
@@ -45,7 +45,7 @@ class Car:
         #         continue 
         #     print("Connection to compass successful!")
         #     break 
-        self.compass = LIS3MDL.compass()
+        self.compass = LIS3MDL.Compass()
 
         # initialise pushbutton
         # two pins are connected to the start button as safeguard
@@ -206,7 +206,7 @@ class Car:
 
     prev_time = 0
     cur_time = 0
-    def get_frame(self, rotate: bool =True, fps: bool = True):
+    def get_frame(self, rotate: bool =False, fps: bool = True):
         """
         Reads video frames from video capture and returns manipulated frames.
 
@@ -270,16 +270,12 @@ class Car:
         verbose: bool
             True: print sensor vals | False: no output
         """
-        # print("E1")
         self.front_dist = round(self.us_front.distance*100)
-        # print("E")
         self.left_dist, self.right_dist = self.tof_manager.read_sensors()
-        # print("E2")
         # self.left_dist = (self.tof_left.read() // 10) 
         # self.right_dist = (self.tof_right.read() // 10) 
         # # self.back_dist = (self.tof_back.read() // 10) 
         self.side_diff = self.left_dist - self.right_dist
-        # print("E")
         self.compass_direction = round(self.compass.get_angle())
 
 
