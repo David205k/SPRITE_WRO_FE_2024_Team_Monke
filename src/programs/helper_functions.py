@@ -1,5 +1,11 @@
 from math import *
 
+# compute moving average
+def moving_average(data, window_size=5):
+    if len(data) < window_size:
+        return sum(data) / len(data)  # Average of available data
+    return sum(data[-window_size:]) / window_size  # Moving average of last 'window_size' elements
+
 def get_circle_intersection( r1: float, r2: float, d: float):
 
     """
@@ -59,6 +65,7 @@ def is_ang_in_range(ang: float, lower_bound: float, upper_bound: float) -> bool:
         larger value (from 0-360)
     """ 
 
+    ang = confine_ang(ang) # added
     lower_bound = confine_ang(lower_bound)
     upper_bound = confine_ang(upper_bound)
 

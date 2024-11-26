@@ -1,3 +1,7 @@
+"""
+Use this program to test out the car module.
+"""
+
 import sys
 sys.path.append("/home/monke/WRO FE 2024 (Repository)/src/programs")
 
@@ -14,7 +18,7 @@ def main():
         car.compass.set_home(car.read_button())
 
         car.read_sensors(True)
-        #car.turn(-90)
+        # car.turn(250)
         # car.motor.speed(10)
 
 if __name__ == "__main__":

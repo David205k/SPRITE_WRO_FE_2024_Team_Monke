@@ -68,6 +68,7 @@ class Compass:
             except OSError:
                 print("Unable to connect to compass.")
                 continue
+            print("Connection to compass restored.")
             break
 
         angle = degrees(atan2(magnet_y, magnet_x))

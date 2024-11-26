@@ -36,7 +36,7 @@ May consider using a yaml file instead.
 camera={"shape": (640,480), "vertical FOV": 67, "horizontal FOV": 102, "focal length": 390}
 
 # gpio pin convention
-servo={"pin":5,"start":0, "offset":-15, "min":-50, "max":50} # pin 29 (physical)
+servo={"pin":5,"start":0, "offset":-6, "min":-50, "max":50} # pin 29 (physical)
 us_front={"trig":17, "echo":4} # 11, 7 (physical)
 us_left={"trig":22, "echo":27} # 15, 13 (physical)
 us_right={"trig":9, "echo":10} # 21, 19 (physical)
@@ -49,8 +49,8 @@ tof_left = {"x shut":11} # 23 (physical)
 tof_right = {"x shut":8} # 24 (physical)
 tof_back = {"x shut":25} # 22 (physical)
 
-MAX_SPEED_CMS = 24.5 #cm/s
-CAR_WIDTH = 11.5 # cm
+MAX_SPEED_CMS = 35 #cm/s
+CAR_WIDTH = 13.5 # cm
 CAR_LENGTH = 17.5 # cm
 CAR_HEIGHT = 30 # cm
 WHEELBASE = 11 # cm

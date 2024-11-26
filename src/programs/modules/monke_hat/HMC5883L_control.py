@@ -1,7 +1,13 @@
+"""
+Changing i2c frequency for RPI:
+- Add this to/boot/firmware/config.txt, "dtparam=i2c_arm=on,i2c_arm_baudrate=400000"
+- Reboot pi
+"""
+
 import smbus
 import math
 
-class compass:
+class Compass:
     """
     Class for utilising the HMC5883L magnetometer module
 
@@ -44,9 +50,16 @@ class compass:
 
         self.ADDRESS = addr
 
-        self.bus.write_byte_data(self.ADDRESS, self.CONFIG_A, 0x70)  # Set to 8 samples @ 15Hz
-        self.bus.write_byte_data(self.ADDRESS, self.CONFIG_B, 0x20)  # 1.3 gain LSb / Gauss 1090 (default)
-        self.bus.write_byte_data(self.ADDRESS, self.MODE, 0x00)  # Continuous measurement mode
+        while True:  # try until it connects
+            try:    
+                self.bus.write_byte_data(self.ADDRESS, self.CONFIG_A, 0x70)  # Set to 8 samples @ 15Hz
+                self.bus.write_byte_data(self.ADDRESS, self.CONFIG_B, 0x20)  # 1.3 gain LSb / Gauss 1090 (default)
+                self.bus.write_byte_data(self.ADDRESS, self.MODE, 0x00)  # Continuous measurement mode
+            except OSError:
+                print("Unable to connect to compass")
+                continue 
+            print("Connection to compass successful!")
+            break 
 
         self.startPos = 0
 
@@ -108,7 +121,9 @@ class compass:
             False: Return the true heading
         """
         # read compass angle (catch exception when compass is not connected properly)
+        i = 0
         while True:
+            i += 1
             try:
                 x = self.read_raw_data(self.X_MSB)
                 y = self.read_raw_data(self.Y_MSB)
@@ -116,6 +131,7 @@ class compass:
             except OSError:
                 print("Unable to connect to compass")
                 continue
+            if i > 1: print("Connection to compass successful!")
             break
 
         x, y, z = self.apply_calibration(x, y, z)

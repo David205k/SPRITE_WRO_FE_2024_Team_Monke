@@ -37,15 +37,8 @@ class Car:
         # initialise components  
         #---------------------------------------------------------------------------------------------
         # initialise compass 
-        # while True:  # try until it connects
-        #     try:
-        #         # self.compass = HMC5883L.compass()
-        #     except OSError:
-        #         print("Unable to connect to compass")
-        #         continue 
-        #     print("Connection to compass successful!")
-        #     break 
-        self.compass = LIS3MDL.Compass()
+        self.compass = HMC5883L.Compass()
+        # self.compass = LIS3MDL.Compass()
 
         # initialise pushbutton
         # two pins are connected to the start button as safeguard
@@ -55,7 +48,16 @@ class Car:
         self.servo = MyServo.Servo(servo["pin"], servo["start"], servo["offset"], servo["min"], servo["max"])
         self.motor = Tb6612fng.Motor(mDrvr["stby"], mDrvr["pwmA"], mDrvr["ai1"], mDrvr["ai2"]) 
         self.LED = RGB.LED(rgb["red"], rgb["blue"], rgb["green"])  
-        self.us_front = DistanceSensor(echo=us_front["echo"], trigger=us_front["trig"], max_distance=3, pin_factory=factory)
+        
+        while True:
+            try:
+                self.us_front = DistanceSensor(echo=us_front["echo"], trigger=us_front["trig"], max_distance=3, pin_factory=factory)
+            except Exception:
+                print("Unable to connect to ultrasonic.")
+                continue
+            print("Connection to ultrasonic restored!")
+            break
+        
         self.tof_manager = VL51L1X.tof_manager((tof_left, tof_right))
          
         self.compass_direction = 0
@@ -274,13 +276,12 @@ class Car:
         self.left_dist, self.right_dist = self.tof_manager.read_sensors()
         # self.left_dist = (self.tof_left.read() // 10) 
         # self.right_dist = (self.tof_right.read() // 10) 
-        # # self.back_dist = (self.tof_back.read() // 10) 
+        # self.back_dist = (self.tof_back.read() // 10) 
         self.side_diff = self.left_dist - self.right_dist
         self.compass_direction = round(self.compass.get_angle())
 
-
         if verbose:
-            print(f"Front: {self.front_dist} Left: {self.left_dist} Right: {self.right_dist} Compass: {self.compass_direction}")
+            print(f"Front: {self.front_dist} Left: {self.left_dist} Right: {self.right_dist} Back: {self.back_dist} Compass: {self.compass_direction}")
 
         return self.front_dist, self.left_dist, self.right_dist, self.compass_direction
         
@@ -288,7 +289,7 @@ class Car:
         """Print sensor readings to console"""
 
         self.read_sensors()
-        print(f"Front: {self.front_dist} Left: {self.left_dist} Right: {self.right_dist} Compass: {self.compass_direction}")
+        print(f"Front: {self.front_dist} Left: {self.left_dist} Right: {self.right_dist} Back: {self.back_dist} Compass: {self.compass_direction}")
 
     def reset(self):
         self.inactive()

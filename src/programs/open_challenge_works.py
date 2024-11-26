@@ -24,11 +24,10 @@ Key Notes:
 
 """
 
-from modules.object_detection.Traffic_sign import Traffic_sign
 from modules.object_detection.Corner_line import Line
 from modules.monke_hat.Car import Car
 from modules.monke_hat.PID import PID
-import parameters_obs as obs
+import parameters_open as open
 from robot_config import *
 from helper_functions import *
 
@@ -48,20 +47,16 @@ socket.bind("tcp://127.0.0.1:5555")  # Bind to a port
 # declare objects
 car = Car()
 
-green_sign = Traffic_sign(obs.GREEN_SIGN, obs.SIGN_ZONE)
-red_sign = Traffic_sign(obs.RED_SIGN, obs.SIGN_ZONE)
-parking_lot = Traffic_sign(obs.PARKING_LOT, obs.SIGN_ZONE)
-
-blue_line = Line(obs.BLUE_LINE, obs.LINE_ZONE)
-orange_line = Line(obs.ORANGE_LINE, obs.LINE_ZONE)
-edge = Line(obs.WALLS, obs.WALL_ZONE)
+blue_line = Line(open.BLUE_LINE, open.LINE_ZONE)
+orange_line = Line(open.ORANGE_LINE, open.LINE_ZONE)
+edge = Line(open.WALLS, open.WALL_ZONE)
 
 def reset_driving():
     #reset servo angle and motor speed to default
     car.servo.write(0)
-    car.motor.speed(obs.SPEED)
+    car.motor.speed(open.SPEED)
 
-def drive_dist(dist, speed=obs.SPEED):
+def drive_dist(dist, speed=open.SPEED):
     # drive a specified distance for a certain speed
     car.motor.speed(speed)
     car.servo.write(car.pid_straight((1,0,0)))
@@ -69,9 +64,9 @@ def drive_dist(dist, speed=obs.SPEED):
 
     reset_driving()
 
-def arc(radius:float, heading:float, speed:float=obs.SPEED, tol:float = None, lower_tol:float = 0,  upper_tol:float = 0):
+def arc(radius:float, heading:float, speed:float=open.SPEED, tol:float = None, lower_tol:float = 0,  upper_tol:float = 0):
 
-    car.heading = confine_ang(heading)
+    car.heading = confine_ang(heading) # added
 
     if tol != None:
         upper = car.heading+tol
@@ -90,7 +85,7 @@ def arc(radius:float, heading:float, speed:float=obs.SPEED, tol:float = None, lo
 
     reset_driving()
 
-def curve_to_point(radius:float, x:float, y:float):
+def curve_to_point(radius:float, x:float, y:float, speed=open.SPEED):
     """
     Drive to a point x distance to the side, and y distance infront of the robot.
 
@@ -107,92 +102,40 @@ def curve_to_point(radius:float, x:float, y:float):
         Distance of desired position to robot. 
     """
     theta, tan_dist = calculate_route(radius,x,y)
-    print(f"Curve to point, theta: {theta}, tan dist: {tan_dist}")
+    print(f"    Curve to point, theta: {theta}, tan dist: {tan_dist}")
 
-    tol = 3
     # first arc
-    arc(radius,heading=confine_ang(car.heading+theta),tol=tol)
+    arc(radius,heading=confine_ang(car.heading+theta),speed=speed,lower_tol=-5,upper_tol=5)
 
     # tangent
-    drive_dist(tan_dist, obs.SPEED)
+    drive_dist(tan_dist, speed)
 
     # returning arc
-    arc(-radius,heading=confine_ang(car.heading-theta),tol=tol)
+    arc(-radius,heading=confine_ang(car.heading-theta),speed=speed,lower_tol=-5,upper_tol=5)
 
     return theta, tan_dist
-
-def avoid_sign(sign:Traffic_sign, pass_on_side:str):
-    side = 1 if pass_on_side == "left" else -1
-
-    buffer = 5
-
-    if ((sign.map_x <= CAR_WIDTH/2 + sign.width//2 + buffer and pass_on_side == "left") or
-        (sign.map_x >= -CAR_WIDTH/2 - sign.width//2 - buffer and pass_on_side == "right") and
-        sign.have_sign):
-        if sign.map_y <= 20:
-            print(f"Reversing, {sign.type} sign too close.")
-            print(f"    x,y: {sign.map_x:.2f},{sign.map_y:.2f}")
-            drive_dist(CAR_LENGTH, -obs.SPEED)
-        elif (sign.map_y <= 80):
-        
-            print(f"Avoiding {sign.type} sign.")
-            print(f"    x,y: {sign.map_x:.2f},{sign.map_y:.2f}")
-            b,g,r = sign.bbox_colour
-            car.LED.rgb(r,g,b)
-
-            buffer = 3
-            # x = sign.map_x + (CAR_WIDTH/2 + sign.width/2 + buffer) * -side
-            # y = sign.map_y
-            # r = 20
-            # r = r * side
-            # print(f"Moving to {(x,y)}")
-            while ((sign.map_x <= CAR_WIDTH/2 + sign.width//2 + buffer and pass_on_side == "left") or
-            (sign.map_x >= -CAR_WIDTH/2  - sign.width//2 - buffer and pass_on_side == "right") and sign.have_sign):
-                error = CAR_WIDTH/2 + sign.width//2 + buffer - sign.map_x if pass_on_side == "left" else -CAR_WIDTH/2 - sign.width//2 -buffer - sign.map_x
-                Kp = 4
-                ang = (error / 100) * 45 * Kp
-                car.servo.write(ang)
-                car.motor.speed(obs.SPEED)
-            print("Traffic sign avoided.")
-            reset_driving()
-            # avoid object
-            # curve_to_point(r, x, y)
-
-            # # # drive straight pass the object
-            # drive_dist(green_sign.width+5)
-            
-            # # # # curve back to middle
-            # arc(-20*side, confine_ang(car.heading+90*side), tol=5)
-            # arc(20*side, confine_ang(car.heading-90*side), tol=5)
 
 def show_visuals():
     
     # draw bbox and object coordinates
-    car.frame = green_sign.draw_bbox(car.frame)
-    car.frame = red_sign.draw_bbox(car.frame)
-    car.frame = parking_lot.draw_bbox(car.frame)
-    # car.frame = blue_line.draw_line(car.frame)
-    # car.frame = orange_line.draw_line(car.frame)
+    car.frame = blue_line.draw_line(car.frame)
+    car.frame = orange_line.draw_line(car.frame)
     car.frame = edge.draw_line(car.frame)
 
     # draw zones
-    for zone in (obs.LINE_ZONE, obs.SIGN_ZONE, obs.WALL_ZONE):
+    for zone in (open.LINE_ZONE, open.WALL_ZONE):
         cv2.rectangle(car.frame, (zone[:2]), (zone[0]+zone[2], zone[1]+zone[3]), 
                         (100,200,250), 1)
 
     cv2.imshow("Camera", car.frame)
-    # cv2.imshow("Detection zone", detection_zone)
-    # cv2.imshow("Orange mask", orange_line.mask) 
-    # cv2.imshow("Blue mask", blue_line.mask) 
-    # cv2.imshow("Red", red_sign.mask)
-    # cv2.imshow("Green", green_sign.mask)
-    # cv2.imshow("Parking Lot", parking_lot.mask)
-    # cv2.imshow("Walls", edge.mask)
+    cv2.imshow("Orange mask", orange_line.mask) 
+    cv2.imshow("Blue mask", blue_line.mask) 
+    cv2.imshow("Walls", edge.mask)
 
 def setup():
     car.start_cam()
 
-angles =[]
+angles = []
 wall_angle = 0
 def background_tasks():
     global angles
@@ -205,30 +148,25 @@ def background_tasks():
 
             car.get_frame()
             # slice detection_zones
-            # car.detection_zones["lines"] = car.frame[LINE_ZONE[1]:LINE_ZONE[1]+LINE_ZONE[3], 
-            #                                       LINE_ZONE[0]:LINE_ZONE[0]+LINE_ZONE[2]]
-            
-            car.detection_zones["signs"] = car.frame[obs.SIGN_ZONE[1]:obs.SIGN_ZONE[1]+obs.SIGN_ZONE[3], 
-                                        obs.SIGN_ZONE[0]:obs.SIGN_ZONE[0]+obs.SIGN_ZONE[2]]
+            car.detection_zones["lines"] = car.frame[open.LINE_ZONE[1]:open.LINE_ZONE[1]+open.LINE_ZONE[3], 
+                                                  open.LINE_ZONE[0]:open.LINE_ZONE[0]+open.LINE_ZONE[2]]
 
-            car.detection_zones["walls"] = car.frame[obs.WALL_ZONE[1]:obs.WALL_ZONE[1]+obs.WALL_ZONE[3], 
-                                                  obs.WALL_ZONE[0]:obs.WALL_ZONE[0]+obs.WALL_ZONE[2]]
+            car.detection_zones["walls"] = car.frame[open.WALL_ZONE[1]:open.WALL_ZONE[1]+open.WALL_ZONE[3], 
+                                                  open.WALL_ZONE[0]:open.WALL_ZONE[0]+open.WALL_ZONE[2]]
 
-            # blue_line.detect_line(car.detection_zones["lines"])
-            # orange_line.detect_line(car.detection_zones["lines"])
+            blue_line.detect_line(car.detection_zones["lines"])
+            orange_line.detect_line(car.detection_zones["lines"])
             edge.detect_line(car.detection_zones["walls"])
 
             angles.append(edge.min_angle)
             wall_angle = round(moving_average(angles),3)
-
-            ang_offset = get_angular_diff(car.heading, car.compass_direction)
-            green_sign.detect_sign(car.detection_zones["signs"], ang_offset)
-            red_sign.detect_sign(car.detection_zones["signs"], ang_offset)
-            # parking_lot.detect_sign(frame=car.frame, ang_offset)
-
-            # show_visuals()
+            
+            # print(wall_angle)
+            show_visuals()
 
             # socket.send(pickle.dumps({"front":car.front_dist, "left":car.left_dist, "right":car.right_dist,"compass": car.compass_direction, "heading": car.heading}))
+
+            # print(f"Heading: {car.heading}, Compass: {car.compass_direction}")
 
             if cv2.waitKey(1) & 0xFF == ord('q'): #break out of loop if 'q' is pressed
                 cv2.destroyAllWindows()
@@ -238,7 +176,6 @@ def background_tasks():
         print(f"Error in background tasks: {e}")
 
 def main():
-
     global wall_angle
     start = False
     can_turn = True
@@ -253,7 +190,7 @@ def main():
     while True:
 
         # End the round at start position
-        if (no_of_turns == obs.TOTAL_TURNS 
+        if (no_of_turns >= open.TOTAL_TURNS 
         and (start_pos[0]-10 <= car.front_dist <= start_pos[0]+10) # stop at starting position
         # and is_ang_in_range(car.compass_direction, start_pos[3]-10, start_pos[3]+10) # stop at starting angle
         ): 
@@ -279,30 +216,32 @@ def main():
             time.sleep(0.2)
             
             start_time = time.time()
+
+            # curve_to_point(r,-x,y)
         if start:
             # Main code start here
 
             car.LED.rgb(255,0,255) # pink
-            if red_sign.have_sign:
-                avoid_sign(red_sign, "right")
-            elif green_sign.have_sign:
-                avoid_sign(green_sign, "left")
-            elif (car.front_dist <= 80 and can_turn and 
-                (car.left_dist>=100 or car.right_dist>=100) and 
-                # (not red_sign.have_sign) and (not green_sign.have_sign) and
-                is_ang_in_range(car.compass_direction, car.heading-10, car.heading+10) #and
-                # wall_angle <= 10
-                ):
 
-                print(f"Turning.\n    Front: {car.front_dist} Left: {car.left_dist} Right {car.left_dist} Compass {car.compass_direction}")
+            if no_of_turns == 0 and car.front_dist <=100: 
+                print(blue_line.max_angle, orange_line.max_angle)
+                car.driving_direction = "ACW" if blue_line.max_angle <= orange_line.max_angle else "CW"
+            print(f"    Driving_direction: {car.driving_direction}")
+
+            # corner turn
+            if (car.front_dist <= 90 and can_turn and 
+                (car.left_dist>=80 or car.right_dist>=80) and
+                wall_angle <= 10):#or car.front_dist <=53
+                print(f"Turning.\n    Front: {car.front_dist} Left: {car.left_dist} Right {car.left_dist} Compass {car.compass_direction}  Wall Angle {wall_angle}")
                 
                 no_of_turns += 1
                 can_turn = False
                 turn_radius = 20
 
-                if no_of_turns == 1:
-                    car.driving_direction = "ACW" if car.left_dist >= car.right_dist else "CW"
+                #if no_of_turns == 1:
+                #    car.driving_direction = "ACW" if car.left_dist >= car.right_dist else "CW"
                 print(f"    Driving_direction: {car.driving_direction}")
+
 
                 if car.driving_direction == "CW":
                     car.LED.rgb(255,150,0) # orange
@@ -312,31 +251,49 @@ def main():
                     car.LED.rgb(0,0,255) # blue
                     car.heading -= 90 
 
-                car.heading = confine_ang(car.heading)
+                car.heading = confine_ang(car.heading) # added
                 print(f"    Car new heading: {car.heading}")
                 print(f"    Number of turns: {no_of_turns}")
                 print(f"    Round number: {no_of_turns//4+1}")
                 print("\n")
-                arc(turn_radius, car.heading, obs.SPEED, lower_tol=-20, upper_tol=0)
+                arc(turn_radius, car.heading, open.SPEED, lower_tol=-15, upper_tol=0)
 
-            # elif ((car.left_dist <= 10 and car.driving_direction == "ACW") or 
-            # (car.right_dist <= 10 and car.driving_direction == "CW") and car.front_dist >= turn_dist):
-            #     car.LED.rgb(230,200,100) # yellow
+    
+            elif (car.left_dist <= 15# and 
+                #   (wall_angle >= 15)
+                # (car.left_dist <= 15 and car.driving_direction == "ACW") or 
+                #   (car.right_dist <= 15 and car.driving_direction == "CW")
+                ):
+                car.LED.rgb(230,200,100) # yellow
 
-            #     y = 40
-            #     if car.driving_direction == "ACW":
-            #         x = 20 - car.left_dist 
-            #         r = -20 
-            #     else:
-            #         x = 20 - car.right_dist
-            #         r = 20 
-            #     curve_to_point(r,x,y)
+                r = -18
+                y = 2*abs(r)
+                x = 10
+
+                print(f"Avoiding wall left side.")
+                print(f"    Front: {car.front_dist} Left: {car.left_dist} Right {car.left_dist} Compass {car.compass_direction} Wall Angle {wall_angle}")
+                print(f"    r: {r}, x: {x}, y: {y}")
+                curve_to_point(r,x,y,20)
+            elif (car.right_dist <= 15 #and 
+                #   (wall_angle >= 15)
+                  ):
+                # assuming distance is perpendicular distance of robot to wall
+                car.LED.rgb(230,200,100) # yellow
+
+                r = 18
+                y = 2*abs(r)
+                x = -10
+
+                print(f"Avoiding wall right side.")
+                print(f"    Front: {car.front_dist} Left: {car.left_dist} Right {car.left_dist} Compass {car.compass_direction} Wall Angle {wall_angle}")
+                print(f"    r: {r}, x: {x}, y: {y}")
+                curve_to_point(r,x,y,20)
 
             else:
-                car.motor.speed(obs.SPEED)
-                car.servo.write(car.pid_straight((3,0,0)))
+                car.motor.speed(open.SPEED)
+                car.servo.write(car.pid_straight((2,0,0)))
 
-                if car.front_dist >= 100 and time.time() - turn_time >= 10:
+                if car.front_dist >= 110 and time.time() - turn_time >= 6:
                     can_turn = True
         else:
             car.inactive()

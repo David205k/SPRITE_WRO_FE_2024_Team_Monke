@@ -18,7 +18,7 @@ class tof_manager:
         tof_sensors = []
         for i, sensor in enumerate(tof_sensors_params):
             GPIO.output(sensor["x shut"], GPIO.HIGH)
-            tof_sensors.append(PiicoDev_VL53L1X( bus=1, sda=27, scl=28, freq = 400_000 ))
+            tof_sensors.append(PiicoDev_VL53L1X( bus=1, sda=2, scl=3, freq = 400_000 ))
             tof_sensors[i].change_addr(start_addr+1+i)
 
         self.tof_sensors = tof_sensors

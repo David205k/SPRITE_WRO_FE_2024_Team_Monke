@@ -11,7 +11,7 @@ from RPi import GPIO
 
 GPIO.setmode(GPIO.BCM)
 
-left = 11
+left = 25
 right = 8
 
 GPIO.setup(left, GPIO.OUT)
@@ -26,7 +26,7 @@ tof1.change_addr(0x30)
 
 GPIO.output(right, GPIO.HIGH)
 tof2 = PiicoDev_VL53L1X(bus=1, sda=27, scl=28, freq=400_000)
-tof2.change_addr(0x31)
+tof2.change_addr(0x28)
 
 while True:
     dist1 = tof1.read()
