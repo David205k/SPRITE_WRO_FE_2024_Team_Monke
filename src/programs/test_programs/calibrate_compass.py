@@ -21,16 +21,6 @@ GPIO.setmode(GPIO.BOARD) # pin name convention used is pin numbers on board
 
 # initialise car object
 car = Car(
-    camera=camera,
-    servo=servo,
-    us_front=us_spare1,
-    us_left=us_left,
-    us_right=us_spare2,
-    us_spare1=us_front,
-    us_spare2=us_right,
-    rgb=rgb,
-    pb=pb,
-    mDrvr=mDrvr
 )
 
 # Initialize I2C bus

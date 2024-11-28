@@ -21,7 +21,7 @@ def map(var, min1, max1, min2, max2):
 def main():
 
     controller = RC_control()
-    
+                              
     sensor = Compass()
 
     x_readings, y_readings, z_readings = [], [], []

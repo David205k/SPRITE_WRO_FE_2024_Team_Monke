@@ -151,8 +151,8 @@ if __name__ == "__main__":
                     y_readings.append(y)
                     z_readings.append(z)
                     prev_time = time.time()
-                print("finished recording")
             else:
+                print("finished recording")
                 car.LED.rgb(0,100,0)
 
             if button_tri == 1:

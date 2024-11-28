@@ -109,7 +109,7 @@ def curve_to_point(radius:float, x:float, y:float):
     theta, tan_dist = calculate_route(radius,x,y)
     print(f"Curve to point, theta: {theta}, tan dist: {tan_dist}")
 
-    tol = 3
+    tol = 4
     # first arc
     arc(radius,heading=confine_ang(car.heading+theta),tol=tol)
 
@@ -129,41 +129,47 @@ def avoid_sign(sign:Traffic_sign, pass_on_side:str):
     if ((sign.map_x <= CAR_WIDTH/2 + sign.width//2 + buffer and pass_on_side == "left") or
         (sign.map_x >= -CAR_WIDTH/2 - sign.width//2 - buffer and pass_on_side == "right") and
         sign.have_sign):
-        if sign.map_y <= 20:
+        if sign.map_y <= 40:
             print(f"Reversing, {sign.type} sign too close.")
             print(f"    x,y: {sign.map_x:.2f},{sign.map_y:.2f}")
-            drive_dist(CAR_LENGTH, -obs.SPEED)
+            drive_dist(10, -obs.SPEED)
         elif (sign.map_y <= 80):
         
             print(f"Avoiding {sign.type} sign.")
             print(f"    x,y: {sign.map_x:.2f},{sign.map_y:.2f}")
             b,g,r = sign.bbox_colour
             car.LED.rgb(r,g,b)
-
-            buffer = 3
-            # x = sign.map_x + (CAR_WIDTH/2 + sign.width/2 + buffer) * -side
-            # y = sign.map_y
-            # r = 20
-            # r = r * side
-            # print(f"Moving to {(x,y)}")
-            while ((sign.map_x <= CAR_WIDTH/2 + sign.width//2 + buffer and pass_on_side == "left") or
-            (sign.map_x >= -CAR_WIDTH/2  - sign.width//2 - buffer and pass_on_side == "right") and sign.have_sign):
-                error = CAR_WIDTH/2 + sign.width//2 + buffer - sign.map_x if pass_on_side == "left" else -CAR_WIDTH/2 - sign.width//2 -buffer - sign.map_x
-                Kp = 4
-                ang = (error / 100) * 45 * Kp
-                car.servo.write(ang)
-                car.motor.speed(obs.SPEED)
-            print("Traffic sign avoided.")
-            reset_driving()
-            # avoid object
-            # curve_to_point(r, x, y)
-
-            # # # drive straight pass the object
-            # drive_dist(green_sign.width+5)
             
-            # # # # curve back to middle
-            # arc(-20*side, confine_ang(car.heading+90*side), tol=5)
-            # arc(20*side, confine_ang(car.heading-90*side), tol=5)
+            buffer = 0
+            if sign.type == "red":
+                buffer = 5
+            else:
+                buffer = 0
+            x = sign.map_x + (CAR_WIDTH/2 + sign.width/2 + buffer) * -side
+            y = sign.map_y
+            r = 20
+            r = r * side
+            print(f"Moving to {(x,y)}")
+            # while ((sign.map_x <= CAR_WIDTH/2 + sign.width//2 + buffer and pass_on_side == "left") or
+            # (sign.map_x >= -CAR_WIDTH/2  - sign.width//2 - buffer and pass_on_side == "right") and sign.have_sign):
+            #     error = CAR_WIDTH/2 + sign.width//2 + buffer - sign.map_x if pass_on_side == "left" else -CAR_WIDTH/2 - sign.width//2 -buffer - sign.map_x
+            #     Kp = 4
+            #     ang = (error / 100) * 45 * Kp
+            #     car.servo.write(ang)
+            #     car.motor.speed(obs.SPEED)
+            # print("Traffic sign avoided.")
+            # reset_driving()
+            # avoid object
+            curve_to_point(r, x, y)
+
+            # # drive straight pass the object
+            drive_dist(green_sign.width+6)
+            
+            # # # curve back to middle
+            arc(-20*side, confine_ang(car.heading+90*side), tol=3)
+            arc(18*side, confine_ang(car.heading-90*side), tol=3)
+
+            drive_dist(17, -obs.SPEED)
 
 def show_visuals():
     
@@ -224,13 +230,13 @@ def background_tasks():
 
             # blue_line.detect_line(car.detection_zones["lines"])
             # orange_line.detect_line(car.detection_zones["lines"])
-            edge.detect_line(car.detection_zones["walls"])
+            # edge.detect_line(car.detection_zones["walls"])
 
-            min_angles.append(edge.min_angle)
-            min_wall_angle = round(moving_average(min_angles),3)
-            max_angles.append(edge.max_angle)
-            max_wall_angle = round(moving_average(max_angles),3)
-            max_lines = edge.min_line
+            # min_angles.append(edge.min_angle)
+            # min_wall_angle = round(moving_average(min_angles),3)
+            # max_angles.append(edge.max_angle)
+            # max_wall_angle = round(moving_average(max_angles),3)
+            # max_lines = edge.min_line
 
             # print("min wall angle: ", min_wall_angle)
             # print("max wall angle: ", max_wall_angle)
@@ -238,15 +244,14 @@ def background_tasks():
             ang_offset = get_angular_diff(car.heading, car.compass_direction)
             green_sign.detect_sign(car.detection_zones["signs"], ang_offset)
             red_sign.detect_sign(car.detection_zones["signs"], ang_offset)
-            # parking_lot.detect_sign(frame=car.frame, ang_offset)
-
-            show_visuals()
+            parking_lot.detect_sign(car.frame, ang_offset)
 
             # socket.send(pickle.dumps({"front":car.front_dist, "left":car.left_dist, "right":car.right_dist,"compass": car.compass_direction, "heading": car.heading}))
 
             if cv2.waitKey(1) & 0xFF == ord('q'): #break out of loop if 'q' is pressed
                 cv2.destroyAllWindows()
                 break
+
 
     except Exception as e:
         print(f"Error in background tasks: {e}")
@@ -303,12 +308,12 @@ def main():
                 avoid_sign(green_sign, "left")
             elif (car.front_dist <= 80 and can_turn and 
                 (car.left_dist>=100 or car.right_dist>=100) and 
-                # (not red_sign.have_sign) and (not green_sign.have_sign) and
+                # (not red_sign.have_sign) and (no+-t green_sign.have_sign) and
                 is_ang_in_range(car.compass_direction, car.heading-10, car.heading+10) #and
                 # wall_angle <= 10
                 ):
 
-                print(f"Turning.\n    Front: {car.front_dist} Left: {car.left_dist} Right {car.left_dist} Compass {car.compass_direction}")
+                print(f"Turning.\n       Front: {car.front_dist} Left: {car.left_dist} Right {car.left_dist} Compass {car.compass_direction}")
                 
                 no_of_turns += 1
                 can_turn = False

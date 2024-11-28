@@ -9,12 +9,12 @@ TOTAL_TURNS = 12        # total number of corner turns
 # upper and lower in HSV
 # bbox colour in BGR
 GREEN_SIGN = {"lower":(45, 100, 30), "upper":(80, 255, 200),
-              "height":9.5, "width":5, 
+              "height":10, "width":5, 
               "type": "green", "bbox colour":(0,255,0), 
               "min h":60, "min w":30}
 RED_SIGN = {"lower":(0, 100, 50), "upper":(3, 255, 255), 
              "lower2":(175, 100, 50), "upper2":(179, 255, 255),
-             "height":9.5, "width":5, "type": "red", "bbox colour":(0,0,255),  
+             "height":10, "width":5, "type": "red", "bbox colour":(0,0,255),  
              "min h":60, "min w":30}
 PARKING_LOT = {"lower":(142, 100, 50), "upper":(179, 255, 255),
                 "height":10, "width":20, 

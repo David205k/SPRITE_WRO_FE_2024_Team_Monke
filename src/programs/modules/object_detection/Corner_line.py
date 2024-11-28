@@ -37,8 +37,7 @@ class Line:
     def detect_line(self,frame):
 
         if self.roi: # crop out region of interest if there its specified
-            cropped_out_frame = frame[self.roi[1]:self.roi[1]+self.roi[3], 
-                                                  self.roi[0]:self.roi[0]+self.roi[2]]
+            cropped_out_frame = frame[self.roi[1]:self.roi[1]+self.roi[3], self.roi[0]:self.roi[0]+self.roi[2]]
         else:
             cropped_out_frame = frame
 
@@ -75,9 +74,8 @@ class Line:
                 if angle < self.angles["min"]:
                     self.angles["min"] = angle
                     self.lines["min"] = (x1, y1, x2, y2)
-                
+            
             self.have_line = True
-
             return self.have_line
         else:
             self.have_line = False
@@ -86,9 +84,16 @@ class Line:
     def draw_line(self, camera_frame):
 
         roi = self.roi
-        for line in self.lines:
-            x1, y1, x2, y2 = line  # Extract endpoints of the line
-            cv2.line(camera_frame, (x1+roi[0], y1+roi[1]), (x2+roi[0], y2+roi[1]), self.colour, 2)  # Draw line
+
+        if roi:
+            dx, dy = roi[0], roi[1]
+        else:
+            dx, dy = 0, 0
             
+        for line in self.lines.values():
+            x1, y1, x2, y2 = line  # Extract endpoints of the line
+            cv2.line(camera_frame, (x1+dx, y1+dy), (x2+dx, y2+dy), self.colour, 2)  # Draw line
+            
+        
         return camera_frame
     

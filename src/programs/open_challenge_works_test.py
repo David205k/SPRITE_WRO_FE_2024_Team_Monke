@@ -68,7 +68,7 @@ def drive_dist(dist, speed=open.SPEED):
 
 def arc(radius:float, heading:float, speed:float=open.SPEED, tol:float = None, lower_tol:float = 0,  upper_tol:float = 0):
 
-    car.heading = confine_ang(heading) # added
+    car.heading = confine_ang(heading) 
 
     if tol != None:
         upper = car.heading+tol
@@ -147,7 +147,7 @@ def get_driving_direction():
         if orange_highest_pt[1] >= blue_highest_pt[1]: # if blue is above orange
             car.driving_direction = "CW"
             car.LED.rgb(0,0,255)
-        else: # if orange is above blue
+        else:                                          # if orange is above blue
             car.driving_direction = "ACW"
             car.LED.rgb(255,100,10)
 
@@ -161,12 +161,27 @@ def get_driving_direction():
     time.sleep(0.2)
     return car.driving_direction
 
+def get_white_pixel_percentage(roi_mask):
+    
+    h, w = roi_mask.shape[:2]
+
+    # Count white pixels in the ROI
+    white_pixel_count = cv2.countNonZero(roi_mask)
+    
+    # Calculate total number of pixels in the ROI
+    total_pixels = w * h
+    
+    # Calculate percentage of white pixels
+    white_pixel_percentage = (white_pixel_count / total_pixels) * 100
+    
+    return white_pixel_percentage
+
 def show_visuals():
     
     # draw bbox and object coordinates
-    # car.frame = blue_line.draw_line(car.frame)
-    # car.frame = orange_line.draw_line(car.frame)
-    # car.frame = edge.draw_line(car.frame)
+    car.frame = blue_line.draw_line(car.frame)
+    car.frame = orange_line.draw_line(car.frame)
+    car.frame = edge.draw_line(car.frame)
  
     # draw zones
     zones_to_draw_on_frame = (open.LINE_ZONE, open.WALL_ZONE)  # list all the zones you want to draw here
@@ -175,9 +190,9 @@ def show_visuals():
                         (100,200,250), 1)
 
     cv2.imshow("Camera", car.frame)
-    cv2.imshow("Orange mask", orange_line.mask) 
-    cv2.imshow("Blue mask", blue_line.mask) 
-    # cv2.imshow("Walls", edge.mask)
+    # cv2.imshow("Orange mask", orange_line.mask) 
+    # cv2.imshow("Blue mask", blue_line.mask) 
+    cv2.imshow("Walls", edge.mask)
 
 def setup():
     car.start_cam()
@@ -187,32 +202,32 @@ wall_angle = 0
 def background_tasks():
     global angles
     global wall_angle
-    try:
-        while True:
-            car.read_sensors()
-            car.read_button()
-            car.compass.set_home(car.read_button())
+    # try:
+    while True:
+        car.read_sensors()
+        car.read_button()
+        car.compass.set_home(car.read_button())
 
-            car.get_frame()
+        car.get_frame()
 
-            blue_line.detect_line(car.frame)
-            orange_line.detect_line(car.frame)
-            # edge.detect_line(car.frame)
+        blue_line.detect_line(car.frame)
+        orange_line.detect_line(car.frame)
+        edge.detect_line(car.frame)
 
-            # angles.append(edge.min_angle)
-            # wall_angle = round(moving_average(angles),3)
-            # print(wall_angle)
+        # angles.append(edge.min_angle)
+        # wall_angle = round(moving_average(angles),3)
+        # print(wall_angle)
 
-            # show_visuals()
+        show_visuals()
 
-            # socket.send(pickle.dumps({"front":car.front_dist, "left":car.left_dist, "right":car.right_dist,"compass": car.compass_direction, "heading": car.heading}))
+        # socket.send(pickle.dumps({"front":car.front_dist, "left":car.left_dist, "right":car.right_dist,"compass": car.compass_direction, "heading": car.heading}))
 
-            if cv2.waitKey(1) & 0xFF == ord('q'): #break out of loop if 'q' is pressed
-                cv2.destroyAllWindows()
-                break
+        if cv2.waitKey(1) & 0xFF == ord('q'): #break out of loop if 'q' is pressed
+            cv2.destroyAllWindows()
+            break
 
-    except Exception as e:
-        print(f"Error in background tasks: {e}")
+    # except Exception as e:
+    #     print(f"Error in background tasks: {e}")
 
 def main():
     global wall_angle
@@ -231,8 +246,8 @@ def main():
 
         # End the round at start position
         if (no_of_turns >= open.TOTAL_TURNS 
-        and (start_pos[0]-15 <= car.front_dist <= start_pos[0]+15) # stop at starting position
-        and is_ang_in_range(car.compass_direction, start_pos[3]-10, start_pos[3]+10) # stop at starting angle
+        and (start_pos[0]-10 <= car.front_dist <= start_pos[0]+10) # stop at starting position
+        # and is_ang_in_range(car.compass_direction, start_pos[3]-10, start_pos[3]+10) # stop at starting angle
         ): 
             start = False
             print("Run finished.")
@@ -252,6 +267,7 @@ def main():
 
             print("Program started.")
             print("Running...")
+
             #if no_of_turns == 0 and car.front_dist <=100:
             #    get_driving_direction() # LED will display blue or orange based on corner lines
             # 
@@ -263,6 +279,8 @@ def main():
             # Main code start here
 
             car.LED.rgb(255,0,255) # pink
+
+            print(get_white_pixel_percentage)
 
             if no_of_turns == 0 and car.front_dist <=100:
                     get_driving_direction() # LED will display blue or orange based on corner lines
@@ -303,11 +321,7 @@ def main():
                 print("\n")
                 arc(turn_radius, car.heading, open.SPEED, lower_tol=-15, upper_tol=0)
     
-            elif (car.left_dist <= 10# and 
-                #   (wall_angle >= 15)
-                # (car.left_dist <= 15 and car.driving_direction == "ACW") or 
-                #   (car.right_dist <= 15 and car.driving_direction == "CW")
-                ):
+            elif (car.left_dist <= 10):
                 car.LED.rgb(230,200,100) # yellow
 
                 r = -18
@@ -319,9 +333,7 @@ def main():
                 print(f"    r: {r}, x: {x}, y: {y}")
                 curve_to_point(r,x,y,20)
 
-            elif (car.right_dist <= 10 #and 
-                #   (wall_angle >= 15)
-                  ):
+            elif (car.right_dist <= 15):
                 # assuming distance is perpendicular distance of robot to wall
                 car.LED.rgb(230,200,100) # yellow
 
@@ -338,7 +350,7 @@ def main():
                 car.motor.speed(open.SPEED)
                 car.servo.write(car.pid_straight((2,0,0)))
 
-                if car.front_dist >= 110 and time.time() - turn_time >= 6:
+                if car.front_dist >= 110 and time.time() - turn_time >= 6: # change values based on speed
                     can_turn = True
         else:
             car.inactive()
@@ -353,6 +365,8 @@ if __name__=="__main__":
 
         try:
             main()
+            background_tasks()
+
         except Exception as E: # catch exception in main 
             print(f"Error in main: {E}")
 
@@ -363,6 +377,6 @@ if __name__=="__main__":
     finally: 
         # clean up any used resources (pre-caution)
         car.inactive()
-        background_thread.join()
+        # background_thread.join()
         GPIO.cleanup()
         cv2.destroyAllWindows()
