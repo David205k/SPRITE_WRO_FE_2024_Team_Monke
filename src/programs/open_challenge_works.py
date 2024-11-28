@@ -38,6 +38,7 @@ from math import *
 import time
 import zmq
 import pickle
+import numpy as np
 
 # Create a ZeroMQ PUSH socket
 context = zmq.Context()
@@ -115,6 +116,50 @@ def curve_to_point(radius:float, x:float, y:float, speed=open.SPEED):
 
     return theta, tan_dist
 
+def get_highest_point(hsv_mask):
+
+    """
+    Finds the coordinate of the highest (smallest y-value) point in the hsv mask.
+    
+    Args:
+        hsv_mask (np.ndarray): A binary image (mask) where the target color is white (255).
+    
+    Returns:
+        tuple: The (x, y) coordinate of the highest point, or None if no point is found.
+    """
+    # Find all non-zero (white) points in the mask
+    points = cv2.findNonZero(hsv_mask)
+    
+    if points is not None:
+        # Get the point with the smallest y-coordinate (highest point)
+        highest_point = tuple(points[np.argmin(points[:, 0, 1])][0])
+        return highest_point
+    else:
+        # Return None if no points are found
+        return None
+
+def get_driving_direction():
+    blue_highest_pt = get_highest_point(blue_line.mask)
+    orange_highest_pt = get_highest_point(orange_line.mask)
+
+    if blue_highest_pt is not None and orange_highest_pt is not None:
+        if orange_highest_pt[1] >= blue_highest_pt[1]: # if blue is above orange
+            car.driving_direction = "CW"
+            car.LED.rgb(0,0,255)
+        else: # if orange is above blue
+            car.driving_direction = "ACW"
+            car.LED.rgb(255,100,10)
+
+        print(f"Driving Direction: {car.driving_direction}")
+        print(f"Blue highest: {blue_highest_pt}, Orange highest: {orange_highest_pt}")
+    else:
+        print("Cant't determine driving direction; No orange/blue detected")
+        print("Using default direction")
+        car.LED.rgb(0,0,255)
+
+    time.sleep(0.2)
+    return car.driving_direction
+
 def show_visuals():
     
     # draw bbox and object coordinates
@@ -123,14 +168,15 @@ def show_visuals():
     car.frame = edge.draw_line(car.frame)
 
     # draw zones
-    for zone in (open.LINE_ZONE, open.WALL_ZONE):
+    zones_to_draw_on_frame = (open.LINE_ZONE, open.WALL_ZONE)  # list all the zones you want to draw here
+    for zone in zones_to_draw_on_frame:
         cv2.rectangle(car.frame, (zone[:2]), (zone[0]+zone[2], zone[1]+zone[3]), 
                         (100,200,250), 1)
 
     cv2.imshow("Camera", car.frame)
-    cv2.imshow("Orange mask", orange_line.mask) 
-    cv2.imshow("Blue mask", blue_line.mask) 
-    cv2.imshow("Walls", edge.mask)
+    # cv2.imshow("Orange mask", orange_line.mask) 
+    # cv2.imshow("Blue mask", blue_line.mask) 
+    # cv2.imshow("Walls", edge.mask)
 
 def setup():
     car.start_cam()
@@ -142,31 +188,23 @@ def background_tasks():
     global wall_angle
     try:
         while True:
-            car.read_sensors(True)
+            car.read_sensors()
             car.read_button()
             car.compass.set_home(car.read_button())
 
             car.get_frame()
-            # slice detection_zones
-            car.detection_zones["lines"] = car.frame[open.LINE_ZONE[1]:open.LINE_ZONE[1]+open.LINE_ZONE[3], 
-                                                  open.LINE_ZONE[0]:open.LINE_ZONE[0]+open.LINE_ZONE[2]]
 
-            car.detection_zones["walls"] = car.frame[open.WALL_ZONE[1]:open.WALL_ZONE[1]+open.WALL_ZONE[3], 
-                                                  open.WALL_ZONE[0]:open.WALL_ZONE[0]+open.WALL_ZONE[2]]
-
-            blue_line.detect_line(car.detection_zones["lines"])
-            orange_line.detect_line(car.detection_zones["lines"])
-            edge.detect_line(car.detection_zones["walls"])
+            blue_line.detect_line(car.frame)
+            orange_line.detect_line(car.frame)
+            edge.detect_line(car.frame)
 
             angles.append(edge.min_angle)
             wall_angle = round(moving_average(angles),3)
-            
             # print(wall_angle)
+
             show_visuals()
 
             # socket.send(pickle.dumps({"front":car.front_dist, "left":car.left_dist, "right":car.right_dist,"compass": car.compass_direction, "heading": car.heading}))
-
-            # print(f"Heading: {car.heading}, Compass: {car.compass_direction}")
 
             if cv2.waitKey(1) & 0xFF == ord('q'): #break out of loop if 'q' is pressed
                 cv2.destroyAllWindows()
@@ -177,6 +215,7 @@ def background_tasks():
 
 def main():
     global wall_angle
+
     start = False
     can_turn = True
     no_of_turns = 0
@@ -212,9 +251,8 @@ def main():
 
             print("Program started.")
             print("Running...")
-            car.LED.rgb(100,100,100)
-            time.sleep(0.2)
-            
+            get_driving_direction() # LED will display blue or orange based on corner lines
+
             start_time = time.time()
 
             # curve_to_point(r,-x,y)
@@ -223,10 +261,10 @@ def main():
 
             car.LED.rgb(255,0,255) # pink
 
-            if no_of_turns == 0 and car.front_dist <=100: 
-                print(blue_line.max_angle, orange_line.max_angle)
-                car.driving_direction = "ACW" if blue_line.max_angle <= orange_line.max_angle else "CW"
-            print(f"    Driving_direction: {car.driving_direction}")
+            # if no_of_turns == 0 and car.front_dist <=100: 
+            #     print(blue_line.max_angle, orange_line.max_angle)
+            #     car.driving_direction = "ACW" if blue_line.max_angle <= orange_line.max_angle else "CW"
+            # print(f"    Driving_direction: {car.driving_direction}")
 
             # corner turn
             if (car.front_dist <= 90 and can_turn and 
@@ -238,10 +276,10 @@ def main():
                 can_turn = False
                 turn_radius = 20
 
-                #if no_of_turns == 1:
+                # determine driving direction on first turn
+                #if no_of_turns == 1: 
                 #    car.driving_direction = "ACW" if car.left_dist >= car.right_dist else "CW"
-                print(f"    Driving_direction: {car.driving_direction}")
-
+                # print(f"    Driving_direction: {car.driving_direction}")
 
                 if car.driving_direction == "CW":
                     car.LED.rgb(255,150,0) # orange
@@ -257,7 +295,6 @@ def main():
                 print(f"    Round number: {no_of_turns//4+1}")
                 print("\n")
                 arc(turn_radius, car.heading, open.SPEED, lower_tol=-15, upper_tol=0)
-
     
             elif (car.left_dist <= 15# and 
                 #   (wall_angle >= 15)
@@ -274,6 +311,7 @@ def main():
                 print(f"    Front: {car.front_dist} Left: {car.left_dist} Right {car.left_dist} Compass {car.compass_direction} Wall Angle {wall_angle}")
                 print(f"    r: {r}, x: {x}, y: {y}")
                 curve_to_point(r,x,y,20)
+
             elif (car.right_dist <= 15 #and 
                 #   (wall_angle >= 15)
                   ):

@@ -24,8 +24,11 @@ SIGN_ZONE = (10, 270, camera["shape"][0]-20, camera["shape"][1]-270) # x,y,w,h
 
 BLUE_LINE = {"lower":(100, 70, 60), "upper":(130, 210, 210), "colour bgr":(200,100,0)}
 ORANGE_LINE = {"lower":(5, 60, 60), "upper":(15, 255, 255), "colour bgr":(0,100,200)}
-LINE_ZONE = (20, 350, camera["shape"][0]-40, camera["shape"][1]-350) # x,y,w,h
+LINE_ZONE = (20, 350, 
+             300,
+            #  camera["shape"][0]-40,
+               camera["shape"][1]-350) # x,y,w,h
 
-WALLS = {"lower":(0, 0, 0), "upper":(179, 255, 80), 
+WALLS = {"lower":(0, 0, 0), "upper":(179, 255, 65), 
           "colour bgr":(100,100,100)}
 WALL_ZONE = (0, 300, camera["shape"][0], camera["shape"][1]-300) # x,y,w,h

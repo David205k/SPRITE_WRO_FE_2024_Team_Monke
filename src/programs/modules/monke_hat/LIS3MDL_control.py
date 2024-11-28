@@ -62,9 +62,9 @@ class Compass:
     def get_angle(self, relative=True):
         while True:
             try:
-                # raw_magnet_x, raw_magnet_y, _ = self.lis3mdl._raw_mag_data
-                magnet_x, magnet_y, _ = self.lis3mdl.magnetic
-                # magnet_x, magnet_y = self.apply_calibration(raw_magnet_x, raw_magnet_y)
+                raw_magnet_x, raw_magnet_y, _ = self.lis3mdl._raw_mag_data
+                # magnet_x, magnet_y, _ = self.lis3mdl.magnetic
+                magnet_x, magnet_y = self.apply_calibration(raw_magnet_x, raw_magnet_y)
             except OSError:
                 print("Unable to connect to compass.")
                 continue

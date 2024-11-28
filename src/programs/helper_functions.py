@@ -1,4 +1,5 @@
 from math import *
+from robot_config import *
 
 # compute moving average
 def moving_average(data, window_size=5):

@@ -50,16 +50,9 @@ class Compass:
 
         self.ADDRESS = addr
 
-        while True:  # try until it connects
-            try:    
-                self.bus.write_byte_data(self.ADDRESS, self.CONFIG_A, 0x70)  # Set to 8 samples @ 15Hz
-                self.bus.write_byte_data(self.ADDRESS, self.CONFIG_B, 0x20)  # 1.3 gain LSb / Gauss 1090 (default)
-                self.bus.write_byte_data(self.ADDRESS, self.MODE, 0x00)  # Continuous measurement mode
-            except OSError:
-                print("Unable to connect to compass")
-                continue 
-            print("Connection to compass successful!")
-            break 
+        self.bus.write_byte_data(self.ADDRESS, self.CONFIG_A, 0x70)  # Set to 8 samples @ 15Hz
+        self.bus.write_byte_data(self.ADDRESS, self.CONFIG_B, 0x20)  # 1.3 gain LSb / Gauss 1090 (default)
+        self.bus.write_byte_data(self.ADDRESS, self.MODE, 0x00)  # Continuous measurement mode
 
         self.startPos = 0
 
@@ -121,18 +114,9 @@ class Compass:
             False: Return the true heading
         """
         # read compass angle (catch exception when compass is not connected properly)
-        i = 0
-        while True:
-            i += 1
-            try:
-                x = self.read_raw_data(self.X_MSB)
-                y = self.read_raw_data(self.Y_MSB)
-                z = self.read_raw_data(self.Z_MSB)
-            except OSError:
-                print("Unable to connect to compass")
-                continue
-            if i > 1: print("Connection to compass successful!")
-            break
+        x = self.read_raw_data(self.X_MSB)
+        y = self.read_raw_data(self.Y_MSB)
+        z = self.read_raw_data(self.Z_MSB)
 
         x, y, z = self.apply_calibration(x, y, z)
 

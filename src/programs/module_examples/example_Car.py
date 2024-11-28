@@ -17,7 +17,7 @@ def main():
 
         car.compass.set_home(car.read_button())
 
-        car.read_sensors(True)
+        car.read_sensors()
         # car.turn(250)
         # car.motor.speed(10)
 

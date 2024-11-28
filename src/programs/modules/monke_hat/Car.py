@@ -2,10 +2,10 @@ import sys
 sys.path.append('/home/monke/WRO FE 2024 (Repository)/src/programs')
 
 import cv2
-from picamera2 import Picamera2
+from picamera2 import Picamera2 
 from math import *
 import time
-import RPi.GPIO as GPIO # use RPi library for controlling GPIO pins
+import RPi.GPIO as GPIO                         # use RPi library for controlling GPIO pins
 from gpiozero.pins.pigpio import PiGPIOFactory
 
 from gpiozero import DistanceSensor
@@ -36,27 +36,20 @@ class Car:
 
         # initialise components  
         #---------------------------------------------------------------------------------------------
+        self.servo = MyServo.Servo(servo["pin"], servo["start"], servo["offset"], servo["min"], servo["max"])
+        self.motor = Tb6612fng.Motor(mDrvr["stby"], mDrvr["pwmA"], mDrvr["ai1"], mDrvr["ai2"]) 
+        self.LED = RGB.LED(rgb["red"], rgb["blue"], rgb["green"])  
+
         # initialise compass 
-        self.compass = HMC5883L.Compass()
-        # self.compass = LIS3MDL.Compass()
+        self.compass = self.check_component_connection(HMC5883L.Compass, "Compass", Exception, (255,255,0))
+        # self.compass = self.check_connection(LIS3MDL.Compass, "Compass", ValueError, (255,255,0))
 
         # initialise pushbutton
         # two pins are connected to the start button as safeguard
         GPIO.setup(pb[1],GPIO.IN)        
         GPIO.setup(pb[2],GPIO.IN)
 
-        self.servo = MyServo.Servo(servo["pin"], servo["start"], servo["offset"], servo["min"], servo["max"])
-        self.motor = Tb6612fng.Motor(mDrvr["stby"], mDrvr["pwmA"], mDrvr["ai1"], mDrvr["ai2"]) 
-        self.LED = RGB.LED(rgb["red"], rgb["blue"], rgb["green"])  
-        
-        while True:
-            try:
-                self.us_front = DistanceSensor(echo=us_front["echo"], trigger=us_front["trig"], max_distance=3, pin_factory=factory)
-            except Exception:
-                print("Unable to connect to ultrasonic.")
-                continue
-            print("Connection to ultrasonic restored!")
-            break
+        self.us_front = DistanceSensor(echo=us_front["echo"], trigger=us_front["trig"], max_distance=3, pin_factory=factory)
         
         self.tof_manager = VL51L1X.tof_manager((tof_left, tof_right))
          
@@ -74,6 +67,43 @@ class Car:
         self.driving_direction = "CW"
 
         self.PID_controller = None
+
+    def check_component_connection(self, connect_function, device, error, LED_colour, *args, **kwargs):
+        """
+        Function to catch the error where a component is disconected.
+
+        Prevents code from being stopped. Prints error message and turns on LED.
+
+        Parameters:
+        -----------
+        connect_function:
+            Function to connect to module which may produce an error.
+        device:
+            The component to connect to. Will display this name in the success and error msg
+        LED_colour:
+            Colour to display on the LED when no connection
+        *args:
+            positional arguments for function
+        **kwargs:
+            keyword arguments for function
+        """
+        n = 0
+        while True:
+            n+=1
+
+            try:
+                return_object = connect_function(*args, **kwargs)
+            except error:
+                print(f"Error. Unable to connect to {device}")
+                r,g,b = LED_colour
+                self.LED.rgb(r,g,b)
+                continue
+        
+            if n > 1:
+                print(f"Successful connection to {device}")
+                self.LED.off()
+            
+            return return_object
 
     def straight(self, speed: float):
         """
@@ -138,22 +168,23 @@ class Car:
 
         delta_ang = delta_ang*sign
         self.servo.write(round(degrees(delta_ang)))     
-    # old robot turn function
-    # def turn(self, radius): 
-    #     """
-    #     Drive car in circle with specified radius
 
-    #     Parameters
-    #     ----------
-    #     radius: float  
-    #         Radius of circle in cm. (radius >= wheelbase)
-    #         +ve => ACW
-    #         -ve => CW
-    #     """
-    #     if -WHEELBASE <= radius <= WHEELBASE:
-    #         radius = WHEELBASE * radius/abs(radius)
-    #     ang = round(degrees(atan(WHEELBASE/(radius))))
-    #     self.servo.write(ang)
+    # old robot turn function
+    def turn_old(self, radius): 
+        """
+        Drive car in circle with specified radius
+
+        Parameters
+        ----------
+        radius: float  
+            Radius of circle in cm. (radius >= wheelbase)
+            +ve => ACW
+            -ve => CW
+        """
+        if -WHEELBASE <= radius <= WHEELBASE:
+            radius = WHEELBASE * radius/abs(radius)
+        ang = round(degrees(atan(WHEELBASE/(radius))))
+        self.servo.write(ang)
     
     i = 0
     def pid_straight(self, pid: tuple, verbose: bool = False) -> float:
@@ -278,7 +309,8 @@ class Car:
         # self.right_dist = (self.tof_right.read() // 10) 
         # self.back_dist = (self.tof_back.read() // 10) 
         self.side_diff = self.left_dist - self.right_dist
-        self.compass_direction = round(self.compass.get_angle())
+        self.compass_direction = round(self.check_component_connection(
+            self.compass.get_angle, "Compass", Exception, (255, 255, 0)))
 
         if verbose:
             print(f"Front: {self.front_dist} Left: {self.left_dist} Right: {self.right_dist} Back: {self.back_dist} Compass: {self.compass_direction}")

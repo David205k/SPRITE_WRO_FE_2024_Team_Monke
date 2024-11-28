@@ -187,19 +187,27 @@ def show_visuals():
     # cv2.imshow("Red", red_sign.mask)
     # cv2.imshow("Green", green_sign.mask)
     # cv2.imshow("Parking Lot", parking_lot.mask)
-    # cv2.imshow("Walls", edge.mask)
+    cv2.imshow("Walls", edge.mask)
+    cv2.imshow("Canny edges", edge.edges)
 
 def setup():
     car.start_cam()
 
-angles =[]
-wall_angle = 0
+min_angles =[]
+min_wall_angle = 0
+
+max_angles =[]
+max_wall_angle = 0
+
 def background_tasks():
-    global angles
-    global wall_angle
+    global min_angles
+    global min_wall_angle
+    global max_angles
+    global max_wall_angle
+    global max_line
     try:
         while True:
-            car.read_sensors(True)
+            car.read_sensors()
             car.read_button()
             car.compass.set_home(car.read_button())
 
@@ -218,15 +226,21 @@ def background_tasks():
             # orange_line.detect_line(car.detection_zones["lines"])
             edge.detect_line(car.detection_zones["walls"])
 
-            angles.append(edge.min_angle)
-            wall_angle = round(moving_average(angles),3)
+            min_angles.append(edge.min_angle)
+            min_wall_angle = round(moving_average(min_angles),3)
+            max_angles.append(edge.max_angle)
+            max_wall_angle = round(moving_average(max_angles),3)
+            max_lines = edge.min_line
+
+            # print("min wall angle: ", min_wall_angle)
+            # print("max wall angle: ", max_wall_angle)
 
             ang_offset = get_angular_diff(car.heading, car.compass_direction)
             green_sign.detect_sign(car.detection_zones["signs"], ang_offset)
             red_sign.detect_sign(car.detection_zones["signs"], ang_offset)
             # parking_lot.detect_sign(frame=car.frame, ang_offset)
 
-            # show_visuals()
+            show_visuals()
 
             # socket.send(pickle.dumps({"front":car.front_dist, "left":car.left_dist, "right":car.right_dist,"compass": car.compass_direction, "heading": car.heading}))
 
@@ -239,7 +253,7 @@ def background_tasks():
 
 def main():
 
-    global wall_angle
+    global min_wall_angle
     start = False
     can_turn = True
     no_of_turns = 0
